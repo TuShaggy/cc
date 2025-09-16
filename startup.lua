@@ -52,10 +52,10 @@ if #fluxgateNames < 2 then
 end
 
 local function selectFluxgates()
-  f.clear(monitor)
-  f.draw_text(monitor, 2, 2, "Selecciona Fluxgate de ENTRADA", colors.white, colors.black)
+  f.clear(mon)
+  f.draw_text(mon, 2, 2, "Selecciona Fluxgate de ENTRADA", colors.white, colors.black)
   for i, name in ipairs(fluxgateNames) do
-    f.draw_text(monitor, 2, 4 + i, i .. ". " .. name, colors.white, colors.gray)
+    f.draw_text(mon, 2, 4 + i, i .. ". " .. name, colors.white, colors.gray)
   end
 
   local selectedInput = nil
@@ -64,18 +64,18 @@ local function selectFluxgates()
     for i, name in ipairs(fluxgateNames) do
       if yPos == 4 + i then
         selectedInput = i
-        f.draw_text(monitor, 25, 4 + i, "<- ENTRADA", colors.green, colors.black)
+        f.draw_text(mon, 25, 4 + i, "<- ENTRADA", colors.green, colors.black)
         sleep(0.5)
       end
     end
   end
 
-  f.clear(monitor)
-  f.draw_text(monitor, 2, 2, "Selecciona Fluxgate de SALIDA", colors.white, colors.black)
+  f.clear(mon)
+  f.draw_text(mon, 2, 2, "Selecciona Fluxgate de SALIDA", colors.white, colors.black)
   for i, name in ipairs(fluxgateNames) do
-    f.draw_text(monitor, 2, 4 + i, i .. ". " .. name, colors.white, colors.gray)
+    f.draw_text(mon, 2, 4 + i, i .. ". " .. name, colors.white, colors.gray)
     if i == selectedInput then
-      f.draw_text(monitor, 25, 4 + i, "<- ENTRADA", colors.green, colors.black)
+      f.draw_text(mon, 25, 4 + i, "<- ENTRADA", colors.green, colors.black)
     end
   end
 
@@ -85,7 +85,7 @@ local function selectFluxgates()
     for i, name in ipairs(fluxgateNames) do
       if yPos == 4 + i and i ~= selectedInput then
         selectedOutput = i
-        f.draw_text(monitor, 25, 4 + i, "<- SALIDA", colors.blue, colors.black)
+        f.draw_text(mon, 25, 4 + i, "<- SALIDA", colors.blue, colors.black)
         sleep(0.5)
       end
     end
