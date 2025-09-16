@@ -183,6 +183,7 @@ function buttons()
         autoInputGate = 1
       end
       save_config()
+      update() -- force update after config change
     end
   end
 end
