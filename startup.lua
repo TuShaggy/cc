@@ -183,6 +183,7 @@ function buttons()
         autoInputGate = 1
       end
       save_config()
+      f.clear(mon) -- Clear the entire screen on mode change
     end
   end
 end
