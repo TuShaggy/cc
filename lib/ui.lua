@@ -1,3 +1,6 @@
+os.loadAPI("lib/f.lua")
+local f = require("lib/f")
+
 local ui = {}
 
 -- Double buffering
