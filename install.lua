@@ -1,19 +1,24 @@
 -- drmon installation script
 --
-local version = "1.0.1"
+local version = "1.0.2"
 
 -- Create lib directory if it doesn't exist
 if not fs.exists("lib") then
   fs.makeDir("lib")
 end
 
--- Copy startup.lua
-print("Installing startup.lua from local file system")
-if fs.exists("startup.lua") then
-  fs.copy("startup.lua", "/startup.lua")
-else
-  print("Error: startup.lua not found in the current directory.")
+-- Files to copy
+local filesToCopy = {"startup.lua", "README.md"}
+
+for _, file in ipairs(filesToCopy) do
+  print("Installing " .. file .. " from local file system")
+  if fs.exists(file) then
+    fs.copy(file, "/" .. file)
+  else
+    print("Error: " .. file .. " not found in the current directory.")
+  end
 end
+
 
 -- Create version file
 local versionFile = fs.open("version.txt", "w")

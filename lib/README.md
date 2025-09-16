@@ -6,12 +6,12 @@ This version is a refactored and consolidated script based on the work of others
 
 ## Installation
 
-1.  Copy all the files from your local project directory (e.g., `D:\GITHUB\cc`) into the desired computer's root directory within the Minecraft world (`.minecraft/saves/<world_name>/computer/<computer_id>/`).
+1.  Place all project files (`install`, `startup.lua`, `README.md`, etc.) into the root directory of the target ComputerCraft computer. You can find this folder in your Minecraft world save, for example: `.minecraft/saves/<world_name>/computer/<computer_id>/`.
 2.  On the ComputerCraft computer, run the installer:
     ```
     install
     ```
-3.  The installer will copy the `startup.lua` script to the root of the computer.
+3.  The installer will copy the necessary files to their final destinations.
 4.  Reboot the computer by holding `Ctrl+R`. The monitor script should start automatically.
 
 ## References
