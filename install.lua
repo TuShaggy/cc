@@ -1,47 +1,26 @@
 -- drmon installation script
 --
-os.loadAPI("filesystem") -- Load the filesystem API
-local version = "0.48"
+local version = "1.0.0"
 
-local function installFromFileSystem()
-  local files = {
-    "startup.lua",
-    "lib/f.lua",
-    "lib/ui.lua",
-    "# Code Citations.md"
-  }
-
-  for _, path in ipairs(files) do
-    print("Installing " .. path .. " from local file system")
-    local f = fs.open(path, "r")
-    if f then
-      local content = f.readAll()
-      f.close()
-
-      local outFile = fs.open(path, "w")
-      if outFile then
-        outFile.write(content)
-        outFile.close()
-      else
-        print("Error: Could not open " .. path .. " for writing")
-      end
-    else
-      print("Error: Could not open " .. path .. " for reading")
-    end
-  end
+-- Create lib directory if it doesn't exist
+if not fs.exists("lib") then
+  fs.makeDir("lib")
 end
 
-print("Current working directory: " .. fs.getWorkingDirectory())
-print("Copy the files to this directory before running the installer.")
+-- Copy startup.lua
+print("Installing startup.lua from local file system")
+if fs.exists("startup.lua") then
+  fs.copy("startup.lua", "/startup.lua")
+else
+  print("Error: startup.lua not found in the current directory.")
+end
 
-print("Loading from local file system")
-installFromFileSystem()
+-- Create version file
 local versionFile = fs.open("version.txt", "w")
 if versionFile then
-  versionFile.writeLine(version)
+  versionFile.write(version)
   versionFile.close()
-else
-  print("Error: Could not open version.txt for writing")
 end
 
 print("DRMon version " .. version .. " installation complete!")
+print("Please reboot the computer by pressing Ctrl+R.")

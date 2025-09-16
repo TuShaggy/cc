@@ -1,4 +1,4 @@
-os.loadAPI("lib/f.lua")
+-- This file is no longer used. All functions have been moved to startup.lua.
 local f = require("lib/f")
 
 local ui = {}
