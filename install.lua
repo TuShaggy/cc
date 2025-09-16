@@ -4,8 +4,9 @@
 
 local libURL = "https://raw.githubusercontent.com/TuShaggy/cc/refs/heads/main/lib/f.lua"
 local startupURL = "https://raw.githubusercontent.com/TuShaggy/cc/refs/heads/main/startup.lua"
-local lib, startup
-local libFile, startupFile
+local uiURL = "https://raw.githubusercontent.com/TuShaggy/cc/refs/heads/main/lib/ui.lua" -- ui url
+local lib, startup, ui
+local libFile, startupFile, uiFile
 
 fs.makeDir("lib")
 
@@ -37,4 +38,19 @@ if startup then
   startup.close()
 else
   print("Error: Could not download startup")
+end
+
+ui = http.get(uiURL)
+if ui then
+  uiFile = ui.readAll()
+  local file3 = fs.open("lib/ui.lua", "w")
+  if file3 then
+    file3.write(uiFile)
+    file3.close()
+  else
+    print("Error: Could not open lib/ui.lua for writing")
+  end
+  ui.close()
+else
+  print("Error: Could not download lib/ui.lua")
 end

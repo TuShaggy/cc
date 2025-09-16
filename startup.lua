@@ -6,7 +6,7 @@ local lowestFieldPercent = 15
 local activateOnCharged = 1
 
 os.loadAPI("lib/f.lua")
-os.loadAPI("lib/ui.lua")
+os.loadAPI("lib/ui.lua") -- Correct the path to ui.lua
 
 local version = "0.25"
 local autoInputGate = 1
