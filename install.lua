@@ -1,56 +1,45 @@
 -- drmon installation script
 --
---
 
-local libURL = "https://raw.githubusercontent.com/TuShaggy/cc/refs/heads/main/lib/f.lua"
-local startupURL = "https://raw.githubusercontent.com/TuShaggy/cc/refs/heads/main/startup.lua"
-local uiURL = "https://raw.githubusercontent.com/TuShaggy/cc/refs/heads/main/lib/ui.lua" -- ui url
-local lib, startup, ui
-local libFile, startupFile, uiFile
+local repoURL = "https://api.github.com/repos/TuShaggy/cc/contents"
+local baseURL = "https://raw.githubusercontent.com/TuShaggy/cc/main/"
 
-fs.makeDir("lib")
-
-lib = http.get(libURL)
-if lib then
-  libFile = lib.readAll()
-  local file1 = fs.open("lib/f.lua", "w")
-  if file1 then
-    file1.write(libFile)
-    file1.close()
+local function downloadFile(path)
+  local url = baseURL .. path
+  print("Downloading " .. path .. " from " .. url)
+  local file = http.get(url)
+  if file then
+    local content = file.readAll()
+    local f = fs.open(path, "w")
+    if f then
+      f.write(content)
+      f.close()
+    else
+      print("Error: Could not open " .. path .. " for writing")
+    end
+    file.close()
   else
-    print("Error: Could not open lib/f.lua for writing")
+    print("Error: Could not download " .. path)
   end
-  lib.close()
-else
-  print("Error: Could not download lib/f.lua")
 end
 
-startup = http.get(startupURL)
-if startup then
-  startupFile = startup.readAll()
-  local file2 = fs.open("startup", "w")
-  if file2 then
-    file2.write(startupFile)
-    file2.close()
+local function installFromGithub()
+  local json = http.get(repoURL)
+  if json then
+    local content = textutils.jsonDecode(json.readAll())
+    json.close()
+
+    for _, file in ipairs(content) do
+      if file.type == "file" then
+        downloadFile(file.path)
+      elseif file.type == "dir" then
+        fs.makeDir(file.path)
+      end
+    end
   else
-    print("Error: Could not open startup for writing")
+    print("Error: Could not connect to GitHub API")
   end
-  startup.close()
-else
-  print("Error: Could not download startup")
 end
 
-ui = http.get(uiURL)
-if ui then
-  uiFile = ui.readAll()
-  local file3 = fs.open("lib/ui.lua", "w")
-  if file3 then
-    file3.write(uiFile)
-    file3.close()
-  else
-    print("Error: Could not open lib/ui.lua for writing")
-  end
-  ui.close()
-else
-  print("Error: Could not download lib/ui.lua")
-end
+installFromGithub()
+print("Installation complete!")
