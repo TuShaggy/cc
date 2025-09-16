@@ -13,7 +13,6 @@ local activateOnCharged = 1
 os.loadAPI("lib/f")
 
 local version = "0.25"
--- toggleable via the monitor, use our algorithm to achieve our target field strength or let the user tweak it
 local autoInputGate = 1
 local curInputGate = 222000
 
@@ -38,21 +37,22 @@ inputfluxgate = f.periphSearch("flux_gate")
 fluxgate = peripheral.wrap(fluxgateSide)
 reactor = peripheral.wrap(reactorSide)
 
-if monitor == null then
+if monitor == nil then
 	error("No valid monitor was found")
 end
 
-if fluxgate == null then
+if fluxgate == nil then
 	error("No valid fluxgate was found")
 end
 
-if reactor == null then
+if reactor == nil then
 	error("No valid reactor was found")
 end
 
-if inputfluxgate == null then
+if inputfluxgate == nil then
 	error("No valid flux gate was found")
 end
+
 
 monX, monY = monitor.getSize()
 mon = {}
