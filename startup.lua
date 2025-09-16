@@ -1,24 +1,21 @@
--- startup.lua — HUD draconic corregido (AU/MA limpia botones correctamente)
+-- startup.lua — HUD draconic adaptado a dofile()
 
--- modifiable variables
+-- variables modificables
 local targetStrength = 50
 local maxTemperature = 8000
 local safeTemperature = 3000
 local lowestFieldPercent = 15
 local activateOnCharged = 1
 
--- cargar librería f.lua automáticamente
-if fs.exists("lib/f.lua") then
-  os.loadAPI("lib/f.lua")
-elseif fs.exists("f.lua") then
-  os.loadAPI("f.lua")
-else
-  error("No se encontró f.lua (ni en raíz ni en lib/)")
-end
+-- cargar librería f.lua
+local f = dofile("lib/f.lua")  -- asegúrate que el archivo está en /lib/f.lua
 
 local version = "0.27"
 local autoInputGate = 1
 local curInputGate = 222000
+
+-- (el resto de tu código queda igual, usando f.draw_text, f.periphSearch, etc.)
+
 
 -- monitor 
 local mon, monitor, monX, monY
