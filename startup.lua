@@ -251,6 +251,8 @@ local normalUpdateInterval = 0.3
 
 function update()
   local lastCriticalUpdate = 0
+  local fuelPercent, fieldPercent, satPercent -- Declare variables at a higher scope
+
   while true do
     local currentTime = os.time()
     local ri = reactor.getReactorInfo()
@@ -290,7 +292,7 @@ function update()
         previousValues.generationRate = generationRate
       end
 
-      local satPercent = math.ceil(ri.energySaturation / ri.maxEnergySaturation * 10000) * 0.01
+      satPercent = math.ceil(ri.energySaturation / ri.maxEnergySaturation * 10000) * 0.01
       local satPercentText = satPercent .. "%"
       if previousValues.satPercentText ~= satPercentText then
         f.clear_area(mon, 1, 11, monX, 12)
@@ -299,7 +301,7 @@ function update()
         previousValues.satPercentText = satPercentText
       end
 
-      local fieldPercent = math.ceil(ri.fieldStrength / ri.maxFieldStrength * 10000) * 0.01
+      fieldPercent = math.ceil(ri.fieldStrength / ri.maxFieldStrength * 10000) * 0.01
       local fieldPercentText = fieldPercent .. "%"
       if previousValues.fieldPercentText ~= fieldPercentText then
         local fieldColor = colors.red
@@ -312,7 +314,7 @@ function update()
         previousValues.fieldPercentText = fieldPercentText
       end
 
-      local fuelPercent = 100 - math.ceil(ri.fuelConversion / ri.maxFuelConversion * 10000) * 0.01
+      fuelPercent = 100 - math.ceil(ri.fuelConversion / ri.maxFuelConversion * 10000) * 0.01
       local fuelPercentText = fuelPercent .. "%"
       if previousValues.fuelPercentText ~= fuelPercentText then
         local fuelColor = colors.red
@@ -350,18 +352,31 @@ function update()
     end
     if ri.status == "online" then
       if autoInputGate == 1 then
+        -- Auto-mode for input gate (field strength)
         local fluxval = ri.fieldDrainRate / (1 - (targetStrength / 100))
         inputfluxgate.setSignalLowFlow(fluxval)
+
+        -- Auto-mode for output gate (energy saturation)
+        if satPercent > 80 then
+          fluxgate.setSignalLowFlow(ri.generationRate * 1.1) -- Increase output if saturation is high
+        elseif satPercent < 70 then
+          fluxgate.setSignalLowFlow(ri.generationRate * 0.9) -- Decrease output if saturation is low
+        else
+          fluxgate.setSignalLowFlow(ri.generationRate) -- Stabilize output
+        end
       else
+        -- Manual mode
         inputfluxgate.setSignalLowFlow(curInputGate)
+        -- In manual mode, you might want to set a default output or leave it as is.
+        -- For now, we'll let it be manually controlled outside the script or hold its last value.
       end
     end
-    if fuelPercent <= 10 then
+    if fuelPercent and fuelPercent <= 10 then
       reactor.stopReactor()
       action = "Fuel low, refuel"
       if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
     end
-    if fieldPercent <= lowestFieldPercent and ri.status == "online" then
+    if fieldPercent and fieldPercent <= lowestFieldPercent and ri.status == "online" then
       action = "Field < " .. lowestFieldPercent .. "%"
       reactor.stopReactor()
       reactor.chargeReactor()
