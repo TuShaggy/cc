@@ -72,8 +72,9 @@ end
 
 
 function clear(mon)
-  local m = mon
-  if m then
+  if not mon then return end
+  local m = mon.monitor or mon
+  if m and m.setBackgroundColor and m.clear and m.setCursorPos then
     m.setBackgroundColor(colors.black)
     m.clear()
     m.setCursorPos(1,1)
