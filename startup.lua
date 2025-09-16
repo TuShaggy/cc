@@ -93,6 +93,7 @@ local function selectFluxgates()
 end
 
 local inputIdx, outputIdx = selectFluxgates()
+f.clear(mon) -- Clear screen after fluxgate selection
 local inputfluxgate = peripheral.wrap(fluxgateNames[inputIdx])
 local fluxgate = peripheral.wrap(fluxgateNames[outputIdx])
 
