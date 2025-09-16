@@ -247,12 +247,18 @@ local function update()
 
     -- Input Gate
     f.draw_text_lr(mon, 2, 9, 1, "Input Gate", f.format_int(inputfluxgate.getSignalLowFlow()).." rf/t", colors.white, colors.blue, colors.black)
-    if autoInputGate == 1 then
-      drawToggle(14, 10, "AU", true)
-    else
-      drawToggle(14, 10, "MA", false)
-      drawButtons(10)
-    end
+    -- limpiar toda la fila antes de redibujar
+f.draw_line(mon, 2, 10, mon.X-2, colors.black)
+
+if autoInputGate == 1 then
+  -- solo toggle en verde
+  drawToggle(14, 10, "AU", true)
+else
+  -- toggle en gris + botones manuales
+  drawToggle(14, 10, "MA", false)
+  drawButtons(10)
+end
+
   
 
     -- Energy Saturation
