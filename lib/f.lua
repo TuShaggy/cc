@@ -32,17 +32,17 @@ end
 
 --display text text on monitor, "mon" peripheral
 function draw_text(mon, x, y, text, text_color, bg_color)
-  mon.monitor.setBackgroundColor(bg_color)
-  mon.monitor.setTextColor(text_color)
-  mon.monitor.setCursorPos(x,y)
-  mon.monitor.write(text)
+  mon.setBackgroundColor(bg_color)
+  mon.setTextColor(text_color)
+  mon.setCursorPos(x,y)
+  mon.write(text)
 end
 
 function draw_text_right(mon, offset, y, text, text_color, bg_color)
-  mon.monitor.setBackgroundColor(bg_color)
-  mon.monitor.setTextColor(text_color)
-  mon.monitor.setCursorPos(mon.X-string.len(tostring(text))-offset,y)
-  mon.monitor.write(text)
+  mon.setBackgroundColor(bg_color)
+  mon.setTextColor(text_color)
+  mon.setCursorPos(mon.X-string.len(tostring(text))-offset,y)
+  mon.write(text)
 end
 
 function draw_text_lr(mon, x, y, offset, text1, text2, text1_color, text2_color, bg_color)
@@ -55,9 +55,9 @@ function draw_line(mon, x, y, length, color)
     if length < 0 then
       length = 0
     end
-    mon.monitor.setBackgroundColor(color)
-    mon.monitor.setCursorPos(x,y)
-    mon.monitor.write(string.rep(" ", length))
+    mon.setBackgroundColor(color)
+    mon.setCursorPos(x,y)
+    mon.write(string.rep(" ", length))
 end
 
 --create progress bar
