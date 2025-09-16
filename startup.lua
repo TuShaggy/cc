@@ -1,12 +1,12 @@
+local ui = require("lib/ui")
+os.loadAPI("lib/f.lua")
+
 -- modifiable variables
 local targetStrength = 50
 local maxTemperature = 8000
 local safeTemperature = 3000
 local lowestFieldPercent = 15
 local activateOnCharged = 1
-
-os.loadAPI("lib/f.lua")
-local ui = require("lib.ui") -- Correct the path to ui.lua
 
 local version = "0.25"
 local autoInputGate = 1
