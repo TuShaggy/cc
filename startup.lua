@@ -67,41 +67,6 @@ function f.clear_area(mon, x1, y1, x2, y2)
   end
 end
 
--- UI element creation functions
-function ui.button(x, y, width, height, text, callback)
-  return { type = "button", x = x, y = y, width = width, height = height, text = text, callback = callback }
-end
-
-function ui.label(x, y, text)
-  return { type = "label", x = x, y = y, text = text }
-end
-
--- UI rendering functions
-function ui.draw(element, mon)
-  if element.type == "button" then
-    f.draw_text(mon, element.x, element.y, string.rep(" ", element.width), colors.white, colors.gray)
-    f.draw_text(mon, element.x + 1, element.y + math.floor(element.height/2), element.text, colors.white, colors.gray)
-  elseif element.type == "label" then
-    f.draw_text(mon, element.x, element.y, element.text, colors.white, colors.black)
-  end
-end
-
--- Event handling
-function ui.handleClick(x, y, elements)
-  for _, element in ipairs(elements) do
-    if element.type == "button" and x >= element.x and x < element.x + element.width and y >= element.y and y < element.y + element.height then
-      if element.callback then element.callback() end
-      return true
-    end
-  end
-  return false
-end
-
--- Layout functions
-function ui.center(mon_width, element_width)
-  return math.floor(mon_width / 2 - element_width / 2)
-end
-
 --#endregion
 
 --#region Main Script
@@ -115,8 +80,6 @@ local activateOnCharged = 1
 
 -- program variables
 local version = "1.0.0"
-local autoInputGate = 1
-local curInputGate = 222000
 
 -- Detect peripherals
 local monitor, reactor, speaker
@@ -201,66 +164,6 @@ local fluxgate = peripheral.wrap(fluxgateNames[outputIdx])
 if not fluxgate then error("No valid output fluxgate was found") end
 if not inputfluxgate then error("No valid input fluxgate was found") end
 
-function save_config()
-  local sw = fs.open("config.txt", "w")
-  if sw then
-    sw.writeLine(version)
-    sw.writeLine(autoInputGate)
-    sw.writeLine(curInputGate)
-    sw.close()
-  end
-end
-
-function load_config()
-  if fs.exists("config.txt") then
-    local sr = fs.open("config.txt", "r")
-    if sr then
-      local file_version = sr.readLine() -- version is for future use
-      autoInputGate = tonumber(sr.readLine())
-      curInputGate = tonumber(sr.readLine())
-      sr.close()
-    end
-  else
-    save_config()
-  end
-end
-
-load_config()
-
-local function toggleAutoInputGate()
-  if autoInputGate == 1 then autoInputGate = 0 else autoInputGate = 1 end
-  save_config()
-end
-
-local function increaseInputGate()
-  if autoInputGate == 0 then -- Only allow changes in manual mode
-    curInputGate = curInputGate + 1000
-    save_config()
-  end
-end
-
-local function decreaseInputGate()
-  if autoInputGate == 0 then -- Only allow changes in manual mode
-    curInputGate = curInputGate - 1000
-    if curInputGate < 0 then curInputGate = 0 end -- Prevent negative values
-    save_config()
-  end
-end
-
--- UI elements
-local elements = {
-  ui.button(ui.center(monX, 6), 10, 6, 1, "AU/MA", toggleAutoInputGate),
-  ui.button(ui.center(monX, 6) - 4, 10, 3, 1, "-", decreaseInputGate),
-  ui.button(ui.center(monX, 6) + 7, 10, 3, 1, "+", increaseInputGate),
-}
-
-function buttons()
-  while true do
-    local event, side, xPos, yPos = os.pullEvent("monitor_touch")
-    ui.handleClick(xPos, yPos, elements)
-  end
-end
-
 local previousValues = {}
 local lastUpdate = 0
 local criticalUpdateInterval = 0.1
@@ -309,28 +212,12 @@ function update()
         previousValues.generationRate = generationRate
       end
 
-      -- Display manual gate setting when in manual mode
-      if autoInputGate == 0 then
-        local manualGateText = "Manual Gate: " .. f.format_int(curInputGate)
-        if previousValues.manualGateText ~= manualGateText then
-          f.clear_area(mon, 1, 9, monX, 9)
-          f.draw_text(mon, 2, 9, manualGateText, colors.white, colors.black)
-          previousValues.manualGateText = manualGateText
-        end
-      else
-        -- Clear manual gate text if switching back to auto
-        if previousValues.manualGateText then
-          f.clear_area(mon, 1, 9, monX, 9)
-          previousValues.manualGateText = nil
-        end
-      end
-
       satPercent = math.ceil(ri.energySaturation / ri.maxEnergySaturation * 10000) * 0.01
       local satPercentText = satPercent .. "%"
       if previousValues.satPercentText ~= satPercentText then
-        f.clear_area(mon, 1, 11, monX, 12)
-        f.draw_text_lr(mon, 2, 11, 1, "Energy Saturation", satPercentText, colors.white, colors.white, colors.black)
-        f.progress_bar(mon, 2, 12, monX - 2, satPercent, 100, colors.blue, colors.gray)
+        f.clear_area(mon, 1, 8, monX, 9)
+        f.draw_text_lr(mon, 2, 8, 1, "Energy Saturation", satPercentText, colors.white, colors.white, colors.black)
+        f.progress_bar(mon, 2, 9, monX - 2, satPercent, 100, colors.blue, colors.gray)
         previousValues.satPercentText = satPercentText
       end
 
@@ -340,10 +227,10 @@ function update()
         local fieldColor = colors.red
         if fieldPercent >= 50 then fieldColor = colors.green
         elseif fieldPercent > 30 then fieldColor = colors.orange end
-        local fieldLabel = autoInputGate == 1 and "Field Strength T:" .. targetStrength or "Field Strength"
-        f.clear_area(mon, 1, 14, monX, 15)
-        f.draw_text_lr(mon, 2, 14, 1, fieldLabel, fieldPercentText, colors.white, fieldColor, colors.black)
-        f.progress_bar(mon, 2, 15, monX - 2, fieldPercent, 100, fieldColor, colors.gray)
+        local fieldLabel = "Field Strength T:" .. targetStrength
+        f.clear_area(mon, 1, 11, monX, 12)
+        f.draw_text_lr(mon, 2, 11, 1, fieldLabel, fieldPercentText, colors.white, fieldColor, colors.black)
+        f.progress_bar(mon, 2, 12, monX - 2, fieldPercent, 100, fieldColor, colors.gray)
         previousValues.fieldPercentText = fieldPercentText
       end
 
@@ -353,20 +240,18 @@ function update()
         local fuelColor = colors.red
         if fuelPercent >= 70 then fuelColor = colors.green
         elseif fuelPercent > 30 then fuelColor = colors.orange end
-        f.clear_area(mon, 1, 17, monX, 18)
-        f.draw_text_lr(mon, 2, 17, 1, "Fuel", fuelPercentText, colors.white, fuelColor, colors.black)
-        f.progress_bar(mon, 2, 18, monX - 2, fuelPercent, 100, fuelColor, colors.gray)
+        f.clear_area(mon, 1, 14, monX, 15)
+        f.draw_text_lr(mon, 2, 14, 1, "Fuel", fuelPercentText, colors.white, fuelColor, colors.black)
+        f.progress_bar(mon, 2, 15, monX - 2, fuelPercent, 100, fuelColor, colors.gray)
         previousValues.fuelPercentText = fuelPercentText
       end
 
       if previousValues.actionText ~= action then
-        f.clear_area(mon, 1, 19, monX, 19)
-        f.draw_text_lr(mon, 2, 19, 1, "Action:", action, colors.gray, colors.gray, colors.black)
+        f.clear_area(mon, 1, 17, monX, 17)
+        f.draw_text_lr(mon, 2, 17, 1, "Action:", action, colors.gray, colors.gray, colors.black)
         previousValues.actionText = action
       end
 
-      -- Draw static UI elements
-      for _, element in ipairs(elements) do ui.draw(element, mon) end
       lastUpdate = currentTime
     end
 
@@ -384,23 +269,17 @@ function update()
       reactor.activateReactor()
     end
     if ri.status == "online" then
-      if autoInputGate == 1 then
-        -- Auto-mode for input gate (field strength)
-        local fluxval = ri.fieldDrainRate / (1 - (targetStrength / 100))
-        inputfluxgate.setSignalLowFlow(fluxval)
+      -- Auto-mode for input gate (field strength)
+      local fluxval = ri.fieldDrainRate / (1 - (targetStrength / 100))
+      inputfluxgate.setSignalLowFlow(fluxval)
 
-        -- Auto-mode for output gate (energy saturation)
-        if satPercent > 80 then
-          fluxgate.setSignalLowFlow(ri.generationRate * 1.1) -- Increase output if saturation is high
-        elseif satPercent < 70 then
-          fluxgate.setSignalLowFlow(ri.generationRate * 0.9) -- Decrease output if saturation is low
-        else
-          fluxgate.setSignalLowFlow(ri.generationRate) -- Stabilize output
-        end
+      -- Auto-mode for output gate (energy saturation)
+      if satPercent > 80 then
+        fluxgate.setSignalLowFlow(ri.generationRate * 1.1) -- Increase output if saturation is high
+      elseif satPercent < 70 then
+        fluxgate.setSignalLowFlow(ri.generationRate * 0.9) -- Decrease output if saturation is low
       else
-        -- Manual mode
-        inputfluxgate.setSignalLowFlow(curInputGate)
-        -- In manual mode, output gate is not controlled by this script
+        fluxgate.setSignalLowFlow(ri.generationRate) -- Stabilize output
       end
     end
     if fuelPercent and fuelPercent <= 10 then
@@ -426,6 +305,6 @@ function update()
   end
 end
 
-parallel.waitForAny(buttons, update)
+update()
 
 --#endregion

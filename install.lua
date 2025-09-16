@@ -1,12 +1,10 @@
 -- drmon installation script
 --
-local version = "1.0.6"
+local version = "1.0.7"
 local repoBaseUrl = "https://raw.githubusercontent.com/TuShaggy/cc/main/"
 
 local filesToDownload = {
-  "startup.lua",
-  "README.md",
-  "cc_tweaked_api.md"
+  "startup.lua"
 }
 
 -- Function to download a file
