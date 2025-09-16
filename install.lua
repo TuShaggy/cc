@@ -1,6 +1,6 @@
 -- drmon installation script
 --
-local version = "1.0.0"
+local version = "1.0.1"
 
 -- Create lib directory if it doesn't exist
 if not fs.exists("lib") then
