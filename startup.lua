@@ -6,7 +6,7 @@ local lowestFieldPercent = 15
 local activateOnCharged = 1
 
 os.loadAPI("lib/f.lua")
-os.loadAPI("lib/ui.lua") -- Correct the path to ui.lua
+os.loadAPI("lib/ui") -- Correct the path to ui.lua
 
 local version = "0.25"
 local autoInputGate = 1
@@ -190,8 +190,6 @@ function update()
     local fieldPercent = math.ceil(ri.fieldStrength / ri.maxFieldStrength * 10000)*.01
     local fuelPercent = 100 - math.ceil(ri.fuelConversion / ri.maxFuelConversion * 10000)*.01
     local actionText = action
-
-    local monX = mon.getSize and select(1, mon.getSize()) or 39
 
     -- Temperature (CRITICAL)
     if currentTime - previousValues.lastCriticalUpdate >= criticalUpdateInterval or previousValues.temperature ~= temperature then
