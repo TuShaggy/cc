@@ -38,7 +38,7 @@ monitor = f.periphSearch("monitor")
 -- Selección interactiva de fluxgate
 local fluxgateNames = {}
 for _, name in ipairs(peripheral.getNames()) do
-  if string.find(name, "flow_gate") then
+  if peripheral.getType(name) == "flow_gate" then
     table.insert(fluxgateNames, name)
   end
 end
