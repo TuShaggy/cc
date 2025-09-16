@@ -1,8 +1,8 @@
 -- drmon installation script
 --
-local version = "0.41"
+local version = "0.42"
 
-local function installFromFileSystem(baseDir)
+local function installFromFileSystem()
   local files = {
     "startup.lua",
     "lib/f.lua",
@@ -11,9 +11,8 @@ local function installFromFileSystem(baseDir)
   }
 
   for _, path in ipairs(files) do
-    local fullPath = baseDir .. "/" .. path
     print("Installing " .. path .. " from local file system")
-    local f = fs.open(fullPath, "r")
+    local f = fs.open(path, "r")
     if f then
       local content = f.readAll()
       f.close()
@@ -26,21 +25,13 @@ local function installFromFileSystem(baseDir)
         print("Error: Could not open " .. path .. " for writing")
       end
     else
-      print("Error: Could not open " .. fullPath .. " for reading")
+      print("Error: Could not open " .. path .. " for reading")
     end
   end
 end
 
-print("Enter the base directory where the files are located (e.g., D:/GITHUB/cc):")
-local baseDir = read()
-
--- Remove trailing slash if present
-if string.sub(baseDir, -1) == "/" then
-  baseDir = string.sub(baseDir, 1, #baseDir - 1)
-end
-
-print("Loading from local file system: " .. baseDir)
-installFromFileSystem(baseDir)
+print("Loading from local file system")
+installFromFileSystem()
 local versionFile = fs.open("version.txt", "w")
 if versionFile then
   versionFile.writeLine(version)
