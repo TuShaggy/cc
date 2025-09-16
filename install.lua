@@ -1,24 +1,44 @@
 -- drmon installation script
 --
-local version = "1.0.3"
+local version = "1.0.4"
+local repoBaseUrl = "https://raw.githubusercontent.com/TuShaggy/cc/main/"
 
--- Create lib directory if it doesn't exist
-if not fs.exists("lib") then
-  fs.makeDir("lib")
-end
+local filesToDownload = {
+  "startup.lua",
+  "README.md",
+  "cc_tweaked_api.md"
+}
 
--- Files to copy
-local filesToCopy = {"startup.lua", "README.md", "cc_tweaked_api.md"}
-
-for _, file in ipairs(filesToCopy) do
-  print("Installing " .. file .. " from local file system")
-  if fs.exists(file) then
-    fs.copy(file, "/" .. file)
+-- Function to download a file
+local function download(file)
+  print("Downloading " .. file .. "...")
+  local url = repoBaseUrl .. file
+  local response = http.get(url)
+  if response then
+    local content = response.readAll()
+    response.close()
+    local f = fs.open(file, "w")
+    if f then
+      f.write(content)
+      f.close()
+      print(file .. " downloaded successfully.")
+    else
+      print("Error: Could not write to " .. file)
+    end
   else
-    print("Error: " .. file .. " not found in the current directory.")
+    print("Error: Could not download " .. file)
   end
 end
 
+-- Download all files
+for _, file in ipairs(filesToDownload) do
+  download(file)
+end
+
+-- Set the downloaded startup script to run on boot
+if fs.exists("startup.lua") then
+    shell.run("cp startup.lua /startup")
+end
 
 -- Create version file
 local versionFile = fs.open("version.txt", "w")
