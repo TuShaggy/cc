@@ -1,39 +1,30 @@
 -- modifiable variables
-local reactorSide = "back"
-local fluxgateSide = "right"
-
 local targetStrength = 50
 local maxTemperature = 8000
 local safeTemperature = 3000
 local lowestFieldPercent = 15
-
 local activateOnCharged = 1
 
--- please leave things untouched from here on
 os.loadAPI("lib/f.lua")
 
 local version = "0.25"
 local autoInputGate = 1
 local curInputGate = 222000
 
--- monitor 
-local mon, monitor
+-- Detectar periféricos automáticamente
+local monitor, reactor, speaker
+for _, name in ipairs(peripheral.getNames()) do
+  local pType = peripheral.getType(name)
+  if not monitor and pType == "monitor" then
+    monitor = peripheral.wrap(name)
+  elseif not reactor and pType == "draconic_reactor" then
+    reactor = peripheral.wrap(name)
+  elseif not speaker and pType == "speaker" then
+    speaker = peripheral.wrap(name)
+  end
+end
 
--- peripherals
-local reactor
-local fluxgate
-local inputfluxgate
-
--- reactor information
-local ri
-
-local action = "None since reboot"
-local emergencyCharge = false
-local emergencyTemp = false
-
-monitor = f.periphSearch("monitor")
-
--- Selección interactiva de fluxgate
+-- Detectar fluxgates
 local fluxgateNames = {}
 for _, name in ipairs(peripheral.getNames()) do
   if peripheral.getType(name) == "flow_gate" then
@@ -41,15 +32,21 @@ for _, name in ipairs(peripheral.getNames()) do
   end
 end
 
-if monitor == nil then
+if not monitor then
   error("No valid monitor was found")
 end
-
+if not reactor then
+  error("No valid draconic reactor was found")
+end
 if #fluxgateNames < 2 then
   error("Se necesitan al menos dos fluxgate conectados")
 end
 
-mon = monitor -- Usa el periférico directamente
+local mon = monitor
+
+local action = "None since reboot"
+local emergencyCharge = false
+local emergencyTemp = false
 
 local function selectFluxgates()
   f.clear(mon)
@@ -94,25 +91,17 @@ local function selectFluxgates()
   return selectedInput, selectedOutput
 end
 
--- Selección de fluxgate por pantalla
 local inputIdx, outputIdx = selectFluxgates()
-inputfluxgate = peripheral.wrap(fluxgateNames[inputIdx])
-fluxgate = peripheral.wrap(fluxgateNames[outputIdx])
-reactor = peripheral.wrap(reactorSide)
+local inputfluxgate = peripheral.wrap(fluxgateNames[inputIdx])
+local fluxgate = peripheral.wrap(fluxgateNames[outputIdx])
 
-if fluxgate == nil then
+if not fluxgate then
   error("No valid fluxgate was found")
 end
-
-if reactor == nil then
-  error("No valid reactor was found")
-end
-
-if inputfluxgate == nil then
+if not inputfluxgate then
   error("No valid flux gate was found")
 end
 
---write settings to config file
 function save_config()
   local sw = fs.open("config.txt", "w")   
   sw.writeLine(version)
@@ -121,7 +110,6 @@ function save_config()
   sw.close()
 end
 
---read settings from file
 function load_config()
   local sr = fs.open("config.txt", "r")
   version = sr.readLine()
@@ -130,7 +118,7 @@ function load_config()
   sr.close()
 end
 
-if fs.exists("config.txt") == false then
+if not fs.exists("config.txt") then
   save_config()
 else
   load_config()
@@ -203,8 +191,8 @@ function update()
   while true do 
     f.clear(mon)
 
-    ri = reactor.getReactorInfo()
-    if ri == nil then
+    local ri = reactor.getReactorInfo()
+    if not ri then
       error("reactor has an invalid setup")
     end
 
@@ -302,6 +290,7 @@ function update()
     if fuelPercent <= 10 then
       reactor.stopReactor()
       action = "Fuel below 10%, refuel"
+      if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
     end
 
     if fieldPercent <= lowestFieldPercent and ri.status == "online" then
@@ -309,12 +298,14 @@ function update()
       reactor.stopReactor()
       reactor.chargeReactor()
       emergencyCharge = true
+      if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
     end
 
     if ri.temperature > maxTemperature then
       reactor.stopReactor()
       action = "Temp > " .. maxTemperature
       emergencyTemp = true
+      if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
     end
 
     sleep(0.1)
