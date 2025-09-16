@@ -1,4 +1,4 @@
--- startup.lua — HUD draconic con AU/MA arreglado y f.lua como módulo
+-- startup.lua — HUD draconic con botones en cajas y AU/MA mejorado
 
 -- ========================
 -- 🔹 VARIABLES MODIFICABLES
@@ -12,7 +12,6 @@ local activateOnCharged = 1
 -- ========================
 -- 🔹 LIBRERÍA f.lua
 -- ========================
--- asegúrate de tener f.lua en /lib/f.lua
 local f = dofile("lib/f.lua")
 
 local version = "0.27"
@@ -122,7 +121,30 @@ else
 end
 
 -- ========================
--- 🔹 BOTONES
+-- 🔹 DIBUJO DE BOTONES
+-- ========================
+local function drawButton(x, y, w, label)
+  f.draw_line(mon, x, y, w, colors.gray)
+  f.draw_text(mon, x + math.floor((w - #label)/2), y, label, colors.white, colors.gray)
+end
+
+local function drawButtons(y)
+  drawButton(2,  y, 3,  "<")
+  drawButton(6,  y, 3, "<<")
+  drawButton(10, y, 3, "<<<")
+  drawButton(17, y, 3, ">>>")
+  drawButton(21, y, 3, ">>")
+  drawButton(25, y, 3, ">")
+end
+
+local function drawToggle(x, y, label, active)
+  local bg = active and colors.green or colors.gray
+  f.draw_line(mon, x, y, 3, bg)
+  f.draw_text(mon, x+1, y, label, colors.white, bg)
+end
+
+-- ========================
+-- 🔹 BOTONES (EVENTOS)
 -- ========================
 local function buttons()
   while true do
@@ -172,15 +194,6 @@ local function buttons()
       save_config()
     end
   end
-end
-
-local function drawButtons(y)
-  f.draw_text(mon, 2, y, " < ", colors.white, colors.gray)
-  f.draw_text(mon, 6, y, " <<", colors.white, colors.gray)
-  f.draw_text(mon, 10, y, "<<<", colors.white, colors.gray)
-  f.draw_text(mon, 17, y, ">>>", colors.white, colors.gray)
-  f.draw_text(mon, 21, y, ">> ", colors.white, colors.gray)
-  f.draw_text(mon, 25, y, " > ", colors.white, colors.gray)
 end
 
 -- ========================
@@ -235,10 +248,9 @@ local function update()
     -- Input Gate
     f.draw_text_lr(mon, 2, 9, 1, "Input Gate", f.format_int(inputfluxgate.getSignalLowFlow()).." rf/t", colors.white, colors.blue, colors.black)
     if autoInputGate == 1 then
-      f.draw_line(mon, 2, 10, mon.X-2, colors.black)
-      f.draw_text(mon, 14, 10, "AU", colors.white, colors.gray)
+      drawToggle(14, 10, "AU", true)
     else
-      f.draw_text(mon, 14, 10, "MA", colors.white, colors.gray)
+      drawToggle(14, 10, "MA", false)
       drawButtons(10)
     end
 
