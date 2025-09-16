@@ -1,4 +1,4 @@
--- startup.lua — HUD draconic con botones en cajas y AU/MA mejorado
+-- startup.lua — HUD draconic con botones en cajas corregidos
 
 -- ========================
 -- 🔹 VARIABLES MODIFICABLES
@@ -121,26 +121,28 @@ else
 end
 
 -- ========================
--- 🔹 DIBUJO DE BOTONES
+-- 🔹 FUNCIONES DE BOTONES (CAJAS)
 -- ========================
-local function drawButton(x, y, w, label)
+local function drawBoxedButton(x, y, w, label)
   f.draw_line(mon, x, y, w, colors.gray)
-  f.draw_text(mon, x + math.floor((w - #label)/2), y, label, colors.white, colors.gray)
+  local pos = x + math.floor((w - #label) / 2)
+  f.draw_text(mon, pos, y, label, colors.white, colors.gray)
 end
 
 local function drawButtons(y)
-  drawButton(2,  y, 3,  "<")
-  drawButton(6,  y, 3, "<<")
-  drawButton(10, y, 3, "<<<")
-  drawButton(17, y, 3, ">>>")
-  drawButton(21, y, 3, ">>")
-  drawButton(25, y, 3, ">")
+  drawBoxedButton(2,  y, 3,  "<")
+  drawBoxedButton(6,  y, 3, "<<")
+  drawBoxedButton(10, y, 3, "<<<")
+  drawBoxedButton(17, y, 3, ">>>")
+  drawBoxedButton(21, y, 3, ">>")
+  drawBoxedButton(25, y, 3, ">")
 end
 
 local function drawToggle(x, y, label, active)
   local bg = active and colors.green or colors.gray
-  f.draw_line(mon, x, y, 3, bg)
-  f.draw_text(mon, x+1, y, label, colors.white, bg)
+  f.draw_line(mon, x, y, 4, bg)
+  local pos = x + math.floor((4 - #label) / 2)
+  f.draw_text(mon, pos, y, label, colors.white, bg)
 end
 
 -- ========================
@@ -247,19 +249,16 @@ local function update()
 
     -- Input Gate
     f.draw_text_lr(mon, 2, 9, 1, "Input Gate", f.format_int(inputfluxgate.getSignalLowFlow()).." rf/t", colors.white, colors.blue, colors.black)
-    -- limpiar toda la fila antes de redibujar
-f.draw_line(mon, 2, 10, mon.X-2, colors.black)
 
-if autoInputGate == 1 then
-  -- solo toggle en verde
-  drawToggle(14, 10, "AU", true)
-else
-  -- toggle en gris + botones manuales
-  drawToggle(14, 10, "MA", false)
-  drawButtons(10)
-end
+    -- limpiar toda la línea antes de dibujar toggle/botones
+    f.draw_line(mon, 2, 10, mon.X-2, colors.black)
 
-  
+    if autoInputGate == 1 then
+      drawToggle(14, 10, "AU", true)
+    else
+      drawToggle(14, 10, "MA", false)
+      drawButtons(10)
+    end
 
     -- Energy Saturation
     local satPercent = math.ceil(ri.energySaturation / ri.maxEnergySaturation * 10000) * .01
