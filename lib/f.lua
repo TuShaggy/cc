@@ -1,6 +1,6 @@
--- f.lua — librería de UI y helpers (versión para os.loadAPI)
+-- f.lua — librería de UI y helpers (versión moderna con return)
 
-f = {}  -- global, para que os.loadAPI cree la tabla f
+local f = {}
 
 function f.clear(mon)
   mon.monitor.setBackgroundColor(colors.black)
@@ -11,8 +11,7 @@ function f.draw_text(mon, x, y, text, text_color, bg_color)
   mon.monitor.setCursorPos(x, y)
   mon.monitor.setBackgroundColor(bg_color)
   mon.monitor.setTextColor(text_color)
-  -- limpiar zona amplia (15 espacios) para evitar “fantasmas”
-  mon.monitor.write(string.rep(" ", 15))
+  mon.monitor.write(string.rep(" ", 15)) -- limpia zona
   mon.monitor.setCursorPos(x, y)
   mon.monitor.write(text)
 end
@@ -25,7 +24,6 @@ function f.draw_text_lr(mon, x, y, margin, leftText, rightText, leftColor, right
   local rightStart = mon.X - #tostring(rightText) - margin
   mon.monitor.setCursorPos(rightStart, y)
   mon.monitor.setTextColor(rightColor)
-  -- limpiar antes de escribir
   mon.monitor.write(string.rep(" ", #tostring(rightText)))
   mon.monitor.setCursorPos(rightStart, y)
   mon.monitor.write(rightText)
@@ -60,3 +58,5 @@ function f.periphSearch(periphType)
   end
   return nil
 end
+
+return f
