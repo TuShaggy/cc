@@ -197,11 +197,14 @@ function drawButtons(y)
 end
 
 local previousValues = {}
+previousValues.lastCriticalUpdate = 0 -- Initialize lastCriticalUpdate
 local lastUpdate = 0
 local updateInterval = 0.3         -- Only update every 0.3 seconds (less critical info)
 local criticalUpdateInterval = 0.1 -- Update every 0.1 seconds (temp, in/out)
 
 function update()
+  previousValues.lastCriticalUpdate = 0 -- Initialize lastCriticalUpdate
+
   while true do
     local currentTime = os.time()
 
