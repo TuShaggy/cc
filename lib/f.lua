@@ -72,7 +72,7 @@ end
 
 
 function clear(mon)
-  local m = mon.monitor or mon
+  local m = mon
   if m then
     m.setBackgroundColor(colors.black)
     m.clear()
