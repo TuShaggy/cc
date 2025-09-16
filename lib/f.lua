@@ -1,6 +1,6 @@
--- f.lua — librería de UI y helpers
+-- f.lua — librería de UI y helpers (versión para os.loadAPI)
 
-local f = {}
+f = {}  -- global, para que os.loadAPI cree la tabla f
 
 function f.clear(mon)
   mon.monitor.setBackgroundColor(colors.black)
@@ -60,5 +60,3 @@ function f.periphSearch(periphType)
   end
   return nil
 end
-
-return f
