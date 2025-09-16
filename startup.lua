@@ -197,9 +197,14 @@ function drawButtons(y)
 end
 
 local previousValues = {}
+local lastUpdate = 0
+local updateInterval = 0.3         -- Only update every 0.3 seconds (less critical info)
+local criticalUpdateInterval = 0.1 -- Update every 0.1 seconds (temp, in/out)
 
 function update()
   while true do
+    local currentTime = os.time()
+
     local ri = reactor.getReactorInfo()
     if not ri then
       error("reactor has an invalid setup")
@@ -217,30 +222,8 @@ function update()
 
     local monX = mon.getSize and select(1, mon.getSize()) or 39
 
-    -- Reactor Status
-    if previousValues.status ~= status then
-      f.clear_area(mon, 1, 2, monX, 2)
-      local statusColor = colors.red
-      if ri.status == "online" or ri.status == "charged" then
-        statusColor = colors.green
-      elseif ri.status == "offline" then
-        statusColor = colors.gray
-      elseif ri.status == "charging" then
-        statusColor = colors.orange
-      end
-      f.draw_text_lr(mon, 2, 2, 1, "Reactor Status", status, colors.white, statusColor, colors.black)
-      previousValues.status = status
-    end
-
-    -- Generation Rate
-    if previousValues.generationRate ~= generationRate then
-      f.clear_area(mon, 1, 4, monX, 4)
-      f.draw_text_lr(mon, 2, 4, 1, "Generation", generationRate, colors.white, colors.lime, colors.black)
-      previousValues.generationRate = generationRate
-    end
-
-    -- Temperature
-    if previousValues.temperature ~= temperature then
+    -- Temperature (CRITICAL)
+    if currentTime - previousValues.lastCriticalUpdate >= criticalUpdateInterval or previousValues.temperature ~= temperature then
       f.clear_area(mon, 1, 6, monX, 6)
       local tempColor = colors.red
       if ri.temperature <= 5000 then tempColor = colors.green end
@@ -249,65 +232,92 @@ function update()
       previousValues.temperature = temperature
     end
 
-    -- Output Gate
-    if previousValues.outputGate ~= outputGate then
+    -- Output Gate (CRITICAL)
+    if currentTime - previousValues.lastCriticalUpdate >= criticalUpdateInterval or previousValues.outputGate ~= outputGate then
       f.clear_area(mon, 1, 7, monX, 7)
       f.draw_text_lr(mon, 2, 7, 1, "Output Gate", outputGate, colors.white, colors.blue, colors.black)
       previousValues.outputGate = outputGate
     end
 
-    -- Input Gate
-    if previousValues.inputGate ~= inputGate then
+    -- Input Gate (CRITICAL)
+    if currentTime - previousValues.lastCriticalUpdate >= criticalUpdateInterval or  previousValues.inputGate ~= inputGate then
       f.clear_area(mon, 1, 9, monX, 9)
       f.draw_text_lr(mon, 2, 9, 1, "Input Gate", inputGate, colors.white, colors.blue, colors.black)
       previousValues.inputGate = inputGate
+      previousValues.lastCriticalUpdate = currentTime
     end
 
-    -- Energy Saturation
-    local satPercentText = satPercent .. "%"
-    if previousValues.satPercentText ~= satPercentText then
-      f.clear_area(mon, 1, 11, monX, 12)
-      f.draw_text_lr(mon, 2, 11, 1, "Energy Saturation", satPercentText, colors.white, colors.white, colors.black)
-      f.progress_bar(mon, 2, 12, monX-2, satPercent, 100, colors.blue, colors.gray)
-      previousValues.satPercentText = satPercentText
-    end
+    if currentTime - lastUpdate >= updateInterval then
+      lastUpdate = currentTime
 
-    -- Field Strength
-    local fieldPercentText = fieldPercent .. "%"
-    if previousValues.fieldPercentText ~= fieldPercentText then
-      f.clear_area(mon, 1, 14, monX, 15)
-      local fieldColor = colors.red
-      if fieldPercent >= 50 then fieldColor = colors.green end
-      if fieldPercent < 50 and fieldPercent > 30 then fieldColor = colors.orange end
-
-      local fieldStrengthLabel = "Field Strength"
-      if autoInputGate == 1 then
-        fieldStrengthLabel = "Field Strength T:" .. targetStrength
+      -- Reactor Status
+      if previousValues.status ~= status then
+        f.clear_area(mon, 1, 2, monX, 2)
+        local statusColor = colors.red
+        if ri.status == "online" or ri.status == "charged" then
+          statusColor = colors.green
+        elseif ri.status == "offline" then
+          statusColor = colors.gray
+        elseif ri.status == "charging" then
+          statusColor = colors.orange
+        end
+        f.draw_text_lr(mon, 2, 2, 1, "Reactor Status", status, colors.white, statusColor, colors.black)
+        previousValues.status = status
       end
 
-      f.draw_text_lr(mon, 2, 14, 1, fieldStrengthLabel, fieldPercentText, colors.white, fieldColor, colors.black)
-      f.progress_bar(mon, 2, 15, monX-2, fieldPercent, 100, fieldColor, colors.gray)
-      previousValues.fieldPercentText = fieldPercentText
-    end
+      -- Generation Rate
+      if previousValues.generationRate ~= generationRate then
+        f.clear_area(mon, 1, 4, monX, 4)
+        f.draw_text_lr(mon, 2, 4, 1, "Generation", generationRate, colors.white, colors.lime, colors.black)
+        previousValues.generationRate = generationRate
+      end
 
-    -- Fuel
-    local fuelPercentText = fuelPercent .. "%"
-    if previousValues.fuelPercentText ~= fuelPercentText then
-      f.clear_area(mon, 1, 17, monX, 18)
-      local fuelColor = colors.red
-      if fuelPercent >= 70 then fuelColor = colors.green end
-      if fuelPercent < 70 and fuelPercent > 30 then fuelColor = colors.orange end
+      -- Energy Saturation
+      local satPercentText = satPercent .. "%"
+      if previousValues.satPercentText ~= satPercentText then
+        f.clear_area(mon, 1, 11, monX, 12)
+        f.draw_text_lr(mon, 2, 11, 1, "Energy Saturation", satPercentText, colors.white, colors.white, colors.black)
+        f.progress_bar(mon, 2, 12, monX-2, satPercent, 100, colors.blue, colors.gray)
+        previousValues.satPercentText = satPercentText
+      end
 
-      f.draw_text_lr(mon, 2, 17, 1, "Fuel ", fuelPercentText, colors.white, fuelColor, colors.black)
-      f.progress_bar(mon, 2, 18, monX-2, fuelPercent, 100, fuelColor, colors.gray)
-      previousValues.fuelPercentText = fuelPercentText
-    end
+      -- Field Strength
+      local fieldPercentText = fieldPercent .. "%"
+      if previousValues.fieldPercentText ~= fieldPercentText then
+        f.clear_area(mon, 1, 14, monX, 15)
+        local fieldColor = colors.red
+        if fieldPercent >= 50 then fieldColor = colors.green end
+        if fieldPercent < 50 and fieldPercent > 30 then fieldColor = colors.orange end
 
-    -- Action
-    if previousValues.actionText ~= actionText then
-      f.clear_area(mon, 1, 19, monX, 19)
-      f.draw_text_lr(mon, 2, 19, 1, "Action ", actionText, colors.gray, colors.gray, colors.black)
-      previousValues.actionText = actionText
+        local fieldStrengthLabel = "Field Strength"
+        if autoInputGate == 1 then
+          fieldStrengthLabel = "Field Strength T:" .. targetStrength
+        end
+
+        f.draw_text_lr(mon, 2, 14, 1, fieldStrengthLabel, fieldPercentText, colors.white, fieldColor, colors.black)
+        f.progress_bar(mon, 2, 15, monX-2, fieldPercent, 100, fieldColor, colors.gray)
+        previousValues.fieldPercentText = fieldPercentText
+      end
+
+      -- Fuel
+      local fuelPercentText = fuelPercent .. "%"
+      if previousValues.fuelPercentText ~= fuelPercentText then
+        f.clear_area(mon, 1, 17, monX, 18)
+        local fuelColor = colors.red
+        if fuelPercent >= 70 then fuelColor = colors.green end
+        if fuelPercent < 70 and fuelPercent > 30 then fuelColor = colors.orange end
+
+        f.draw_text_lr(mon, 2, 17, 1, "Fuel ", fuelPercentText, colors.white, fuelColor, colors.black)
+        f.progress_bar(mon, 2, 18, monX-2, fuelPercent, 100, fuelColor, colors.gray)
+        previousValues.fuelPercentText = fuelPercentText
+      end
+
+      -- Action
+      if previousValues.actionText ~= actionText then
+        f.clear_area(mon, 1, 19, monX, 19)
+        f.draw_text_lr(mon, 2, 19, 1, "Action ", actionText, colors.gray, colors.gray, colors.black)
+        previousValues.actionText = actionText
+      end
     end
 
     -- actual reactor interaction
@@ -360,7 +370,7 @@ function update()
       if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
     end
 
-    sleep(0.2) -- menos parpadeo, pero sigue siendo responsivo
+    sleep(0.1)
   end
 end
 
