@@ -34,24 +34,82 @@ local emergencyCharge = false
 local emergencyTemp = false
 
 monitor = f.periphSearch("monitor")
-inputfluxgate = peripheral.wrap("flow_gate_4")
-fluxgate = peripheral.wrap("flow_gate_9")
-reactor = peripheral.wrap(reactorSide)
 
-if monitor == nil then
-	error("No valid monitor was found")
+-- Selección interactiva de fluxgate
+local fluxgateNames = {}
+for _, name in ipairs(peripheral.getNames()) do
+  if string.find(name, "flow_gate") then
+    table.insert(fluxgateNames, name)
+  end
 end
 
+if monitor == nil then
+  error("No valid monitor was found")
+end
+
+if #fluxgateNames < 2 then
+  error("Se necesitan al menos dos fluxgate conectados")
+end
+
+local function selectFluxgates()
+  f.clear(monitor)
+  f.draw_text(monitor, 2, 2, "Selecciona Fluxgate de ENTRADA", colors.white, colors.black)
+  for i, name in ipairs(fluxgateNames) do
+    f.draw_text(monitor, 2, 4 + i, i .. ". " .. name, colors.white, colors.gray)
+  end
+
+  local selectedInput = nil
+  while not selectedInput do
+    local event, side, xPos, yPos = os.pullEvent("monitor_touch")
+    for i, name in ipairs(fluxgateNames) do
+      if yPos == 4 + i then
+        selectedInput = i
+        f.draw_text(monitor, 25, 4 + i, "<- ENTRADA", colors.green, colors.black)
+        sleep(0.5)
+      end
+    end
+  end
+
+  f.clear(monitor)
+  f.draw_text(monitor, 2, 2, "Selecciona Fluxgate de SALIDA", colors.white, colors.black)
+  for i, name in ipairs(fluxgateNames) do
+    f.draw_text(monitor, 2, 4 + i, i .. ". " .. name, colors.white, colors.gray)
+    if i == selectedInput then
+      f.draw_text(monitor, 25, 4 + i, "<- ENTRADA", colors.green, colors.black)
+    end
+  end
+
+  local selectedOutput = nil
+  while not selectedOutput do
+    local event, side, xPos, yPos = os.pullEvent("monitor_touch")
+    for i, name in ipairs(fluxgateNames) do
+      if yPos == 4 + i and i ~= selectedInput then
+        selectedOutput = i
+        f.draw_text(monitor, 25, 4 + i, "<- SALIDA", colors.blue, colors.black)
+        sleep(0.5)
+      end
+    end
+  end
+
+  return selectedInput, selectedOutput
+end
+
+-- Selección de fluxgate por pantalla
+local inputIdx, outputIdx = selectFluxgates()
+inputfluxgate = peripheral.wrap(fluxgateNames[inputIdx])
+fluxgate = peripheral.wrap(fluxgateNames[outputIdx])
+reactor = peripheral.wrap(reactorSide)
+
 if fluxgate == nil then
-	error("No valid fluxgate was found")
+  error("No valid fluxgate was found")
 end
 
 if reactor == nil then
-	error("No valid reactor was found")
+  error("No valid reactor was found")
 end
 
 if inputfluxgate == nil then
-	error("No valid flux gate was found")
+  error("No valid flux gate was found")
 end
 
 monX, monY = monitor.getSize()
@@ -75,7 +133,6 @@ function load_config()
   curInputGate = tonumber(sr.readLine())
   sr.close()
 end
-
 
 -- 1st time? save our settings, if not, load our settings
 if fs.exists("config.txt") == false then
@@ -158,8 +215,6 @@ function drawButtons(y)
   f.draw_text(mon, 21, y, ">> ", colors.white, colors.gray)
   f.draw_text(mon, 25, y, " > ", colors.white, colors.gray)
 end
-
-
 
 function update()
   while true do 
