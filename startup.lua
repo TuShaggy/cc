@@ -1,5 +1,6 @@
 local ui = require("lib/ui")
 os.loadAPI("lib/f.lua")
+local f = require("lib/f")
 
 -- modifiable variables
 local targetStrength = 50
