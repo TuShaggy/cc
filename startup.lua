@@ -253,6 +253,7 @@ local function update()
       drawToggle(14, 10, "MA", false)
       drawButtons(10)
     end
+  
 
     -- Energy Saturation
     local satPercent = math.ceil(ri.energySaturation / ri.maxEnergySaturation * 10000) * .01
