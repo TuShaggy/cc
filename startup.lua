@@ -15,12 +15,13 @@ local curInputGate = 222000
 local monitor, reactor, speaker
 for _, name in ipairs(peripheral.getNames()) do
   local pType = peripheral.getType(name)
+  local p = peripheral.wrap(name)
   if not monitor and pType == "monitor" then
-    monitor = peripheral.wrap(name)
+    monitor = p
   elseif not reactor and pType == "draconic_reactor" then
-    reactor = peripheral.wrap(name)
+    reactor = p
   elseif not speaker and pType == "speaker" then
-    speaker = peripheral.wrap(name)
+    speaker = p
   end
 end
 
@@ -103,19 +104,27 @@ if not inputfluxgate then
 end
 
 function save_config()
-  local sw = fs.open("config.txt", "w")   
-  sw.writeLine(version)
-  sw.writeLine(autoInputGate)
-  sw.writeLine(curInputGate)
-  sw.close()
+  local sw = fs.open("config.txt", "w")
+  if sw then
+    sw.writeLine(version)
+    sw.writeLine(autoInputGate)
+    sw.writeLine(curInputGate)
+    sw.close()
+  else
+    print("Error: Could not open config.txt for writing")
+  end
 end
 
 function load_config()
   local sr = fs.open("config.txt", "r")
-  version = sr.readLine()
-  autoInputGate = tonumber(sr.readLine())
-  curInputGate = tonumber(sr.readLine())
-  sr.close()
+  if sr then
+    version = sr.readLine()
+    autoInputGate = tonumber(sr.readLine())
+    curInputGate = tonumber(sr.readLine())
+    sr.close()
+  else
+    print("Error: Could not open config.txt for reading")
+  end
 end
 
 if not fs.exists("config.txt") then

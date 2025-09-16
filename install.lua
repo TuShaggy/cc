@@ -10,16 +10,31 @@ local libFile, startupFile
 fs.makeDir("lib")
 
 lib = http.get(libURL)
-libFile = lib.readAll()
-
-local file1 = fs.open("lib/f.lua", "w")
-file1.write(libFile)
-file1.close()
+if lib then
+  libFile = lib.readAll()
+  local file1 = fs.open("lib/f.lua", "w")
+  if file1 then
+    file1.write(libFile)
+    file1.close()
+  else
+    print("Error: Could not open lib/f.lua for writing")
+  end
+  lib.close()
+else
+  print("Error: Could not download lib/f.lua")
+end
 
 startup = http.get(startupURL)
-startupFile = startup.readAll()
-
-
-local file2 = fs.open("startup", "w")
-file2.write(startupFile)
-file2.close()
+if startup then
+  startupFile = startup.readAll()
+  local file2 = fs.open("startup", "w")
+  if file2 then
+    file2.write(startupFile)
+    file2.close()
+  else
+    print("Error: Could not open startup for writing")
+  end
+  startup.close()
+else
+  print("Error: Could not download startup")
+end

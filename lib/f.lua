@@ -22,23 +22,19 @@ end
 
 function draw_text(mon, x, y, text, text_color, bg_color)
   if not mon then return end
-  if mon.setBackgroundColor and mon.setTextColor and mon.setCursorPos and mon.write then
-    mon.setBackgroundColor(bg_color)
-    mon.setTextColor(text_color)
-    mon.setCursorPos(x, y)
-    mon.write(text)
-  end
+  mon.setBackgroundColor(bg_color)
+  mon.setTextColor(text_color)
+  mon.setCursorPos(x,y)
+  mon.write(text)
 end
 
 function draw_text_right(mon, offset, y, text, text_color, bg_color)
   if not mon then return end
   local monX = mon.getSize and select(1, mon.getSize()) or 39
-  if mon.setBackgroundColor and mon.setTextColor and mon.setCursorPos and mon.write then
-    mon.setBackgroundColor(bg_color)
-    mon.setTextColor(text_color)
-    mon.setCursorPos(monX - string.len(tostring(text)) - offset, y)
-    mon.write(text)
-  end
+  mon.setBackgroundColor(bg_color)
+  mon.setTextColor(text_color)
+  mon.setCursorPos(monX-string.len(tostring(text))-offset, y)
+  mon.write(text)
 end
 
 function draw_text_lr(mon, x, y, offset, text1, text2, text1_color, text2_color, bg_color)
@@ -48,26 +44,24 @@ end
 
 function draw_line(mon, x, y, length, color)
     if not mon then return end
-    if length < 0 then length = 0 end
-    if mon.setBackgroundColor and mon.setCursorPos and mon.write then
-      mon.setBackgroundColor(color)
-      mon.setCursorPos(x, y)
-      mon.write(string.rep(" ", length))
+    if length < 0 then
+      length = 0
     end
+    mon.setBackgroundColor(color)
+    mon.setCursorPos(x,y)
+    mon.write(string.rep(" ", length))
 end
 
 function progress_bar(mon, x, y, length, minVal, maxVal, bar_color, bg_color)
   if not mon then return end
   draw_line(mon, x, y, length, bg_color)
-  local barSize = math.floor((minVal / maxVal) * length)
+  local barSize = math.floor((minVal/maxVal) * length)
   draw_line(mon, x, y, barSize, bar_color)
 end
 
 function clear(mon)
   if not mon then return end
-  if mon.setBackgroundColor and mon.clear and mon.setCursorPos then
-    mon.setBackgroundColor(colors.black)
-    mon.clear()
-    mon.setCursorPos(1,1)
-  end
+  mon.setBackgroundColor(colors.black)
+  mon.clear()
+  mon.setCursorPos(1,1)
 end
