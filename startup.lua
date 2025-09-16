@@ -200,14 +200,14 @@ function update()
   while true do 
     f.clear(mon)
 
-    local ri = reactor.getReactorInfo()
-    if not ri then
-      error("reactor has an invalid setup")
-    end
+   local ri = reactor.getReactorInfo()
+if not ri then
+  error("reactor has an invalid setup")
+end
 
-    for k, v in pairs (ri) do
-      print(k.. ": ".. v)
-    end
+for k, v in pairs (ri) do
+  print(k.. ": ".. tostring(v)) -- Convertir a cadena
+end
     print("Output Gate: ", fluxgate.getSignalLowFlow())
     print("Input Gate: ", inputfluxgate.getSignalLowFlow())
 
