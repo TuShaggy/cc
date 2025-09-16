@@ -72,10 +72,10 @@ end
 
 
 function clear(mon)
-  term.clear()
-  term.setCursorPos(1,1)
   local m = mon.monitor or mon
-  m.setBackgroundColor(colors.black)
-  m.clear()
-  m.setCursorPos(1,1)
+  if m then
+    m.setBackgroundColor(colors.black)
+    m.clear()
+    m.setCursorPos(1,1)
+  end
 end
