@@ -6,7 +6,7 @@ local lowestFieldPercent = 15
 local activateOnCharged = 1
 
 -- please leave things untouched from here on
-os.loadAPI("lib/f")
+os.loadAPI("lib/f.lua")
 
 local version = "0.26"
 local autoInputGate = 1
