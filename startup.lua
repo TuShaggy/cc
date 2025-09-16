@@ -1,34 +1,30 @@
--- startup.lua — HUD draconic adaptado a dofile()
+-- startup.lua — HUD draconic con AU/MA arreglado y f.lua como módulo
 
--- variables modificables
+-- ========================
+-- 🔹 VARIABLES MODIFICABLES
+-- ========================
 local targetStrength = 50
 local maxTemperature = 8000
 local safeTemperature = 3000
 local lowestFieldPercent = 15
 local activateOnCharged = 1
 
--- cargar librería f.lua
-local f = dofile("lib/f.lua")  -- asegúrate que el archivo está en /lib/f.lua
+-- ========================
+-- 🔹 LIBRERÍA f.lua
+-- ========================
+-- asegúrate de tener f.lua en /lib/f.lua
+local f = dofile("lib/f.lua")
 
 local version = "0.27"
 local autoInputGate = 1
 local curInputGate = 222000
 
--- (el resto de tu código queda igual, usando f.draw_text, f.periphSearch, etc.)
-
-
--- monitor 
+-- ========================
+-- 🔹 VARIABLES GLOBALES
+-- ========================
 local mon, monitor, monX, monY
-
--- peripherals
-local reactor
-local fluxgate
-local inputfluxgate
-
--- reactor information
+local reactor, fluxgate, inputfluxgate
 local ri
-
--- last performed action
 local action = "None since reboot"
 local emergencyCharge = false
 local emergencyTemp = false
