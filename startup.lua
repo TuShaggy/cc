@@ -211,9 +211,6 @@ function update()
   while true do
     ri = reactor.getReactorInfo()
     if ri == nil then error("reactor has an invalid setup") end
-  while true do 
-    ri = reactor.getReactorInfo()
-    if ri == nil then error("reactor has an invalid setup") end
 
     -- monitor output
     local statusColor = colors.red
