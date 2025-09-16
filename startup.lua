@@ -203,8 +203,6 @@ local updateInterval = 0.3         -- Only update every 0.3 seconds (less critic
 local criticalUpdateInterval = 0.1 -- Update every 0.1 seconds (temp, in/out)
 
 function update()
-  previousValues.lastCriticalUpdate = 0 -- Initialize lastCriticalUpdate
-
   while true do
     local currentTime = os.time()
 
