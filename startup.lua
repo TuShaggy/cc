@@ -198,6 +198,7 @@ end
 
 function update()
   while true do
+    f.clear(mon) -- Re-add this line
    local ri = reactor.getReactorInfo()
 if not ri then
   error("reactor has an invalid setup")
