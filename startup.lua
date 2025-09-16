@@ -5,8 +5,16 @@ local safeTemperature = 3000
 local lowestFieldPercent = 15
 local activateOnCharged = 1
 
--- please leave things untouched from here on
-os.loadAPI("lib/f.lua")
+-- ========================
+-- 🔹 LIBRERÍA f.lua
+-- ========================
+if fs.exists("lib/f.lua") then
+  os.loadAPI("lib/f.lua")
+elseif fs.exists("f.lua") then
+  os.loadAPI("f.lua")
+else
+  error("No se encontró f.lua (ni en raíz ni en lib/)")
+end
 
 local version = "0.27"
 local autoInputGate = 1
@@ -104,7 +112,7 @@ mon = { monitor = monitor, X = monX, Y = monY }
 -- 🔹 CONFIG SAVE/LOAD
 -- ========================
 function save_config()
-  sw = fs.open("config.txt", "w")   
+  local sw = fs.open("config.txt", "w")   
   sw.writeLine(version)
   sw.writeLine(autoInputGate)
   sw.writeLine(curInputGate)
@@ -112,14 +120,14 @@ function save_config()
 end
 
 function load_config()
-  sr = fs.open("config.txt", "r")
+  local sr = fs.open("config.txt", "r")
   version = sr.readLine()
   autoInputGate = tonumber(sr.readLine())
   curInputGate = tonumber(sr.readLine())
   sr.close()
 end
 
-if fs.exists("config.txt") == false then
+if not fs.exists("config.txt") then
   save_config()
 else
   load_config()
@@ -130,7 +138,7 @@ end
 -- ========================
 function buttons()
   while true do
-    event, side, xPos, yPos = os.pullEvent("monitor_touch")
+    local event, side, xPos, yPos = os.pullEvent("monitor_touch")
 
     -- output gate controls
     if yPos == 8 then
@@ -170,13 +178,9 @@ function buttons()
       save_config()
     end
 
-    -- input gate toggle
+    -- input gate toggle AU/MA
     if yPos == 10 and ( xPos == 14 or xPos == 15) then
-      if autoInputGate == 1 then
-        autoInputGate = 0
-      else
-        autoInputGate = 1
-      end
+      autoInputGate = (autoInputGate == 1) and 0 or 1
       save_config()
     end
   end
@@ -206,13 +210,14 @@ function drawStaticUI()
   f.draw_text(mon, 2, 17, "Fuel", colors.white, colors.black)
   f.draw_text(mon, 2, 19, "Action", colors.white, colors.black)
 end
+
 function update()
-  drawStaticUI() -- dibuja marco fijo una sola vez
+  drawStaticUI()
   while true do
     ri = reactor.getReactorInfo()
     if ri == nil then error("reactor has an invalid setup") end
 
-    -- monitor output
+    -- monitor output (colores y valores)
     local statusColor = colors.red
     if ri.status == "online" or ri.status == "charged" then
       statusColor = colors.green
@@ -281,7 +286,7 @@ function update()
     end
     if ri.status == "online" then
       if autoInputGate == 1 then 
-        fluxval = ri.fieldDrainRate / (1 - (targetStrength/100) )
+        local fluxval = ri.fieldDrainRate / (1 - (targetStrength/100) )
         print("Target Gate: ".. fluxval)
         inputfluxgate.setSignalLowFlow(fluxval)
       else
