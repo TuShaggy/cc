@@ -1,36 +1,65 @@
--- Instalador CC-Draconic (Full Update)
+-- Instalador CC-Draconic (Auto Update)
+-- Descarga todo el repo de GitHub automáticamente
 -- Repo: https://github.com/TuShaggy/cc
 
-local repo = "https://raw.githubusercontent.com/TuShaggy/cc/main/"
-local files = {
-  "lib/f.lua",
-  "startup.lua",
-}
+local owner = "TuShaggy"
+local repo = "cc"
+local branch = "main"
 
--- 🔹 borrar antiguos archivos
+local apiURL = "https://api.github.com/repos/"..owner.."/"..repo.."/contents"
+local rawURL = "https://raw.githubusercontent.com/"..owner.."/"..repo.."/"..branch.."/"
+
+-- Función recursiva para listar archivos del repo
+local function fetchFiles(path, fileList)
+  local url = apiURL
+  if path ~= "" then url = url.."/"..path end
+  local res = http.get(url)
+  if not res then
+    print("Error al acceder a "..url)
+    return
+  end
+  local data = textutils.unserialiseJSON(res.readAll())
+  res.close()
+
+  for _, item in ipairs(data) do
+    if item.type == "file" then
+      table.insert(fileList, item.path)
+    elseif item.type == "dir" then
+      fetchFiles(item.path, fileList)
+    end
+  end
+end
+
+-- 🔹 obtener lista de archivos del repo
+local files = {}
+fetchFiles("", files)
+
+-- 🔹 borrar antiguos archivos (menos este instalador)
 print("Borrando archivos antiguos...")
-if fs.exists("lib") then fs.delete("lib") end
-if fs.exists("startup.lua") then fs.delete("startup.lua") end
--- NOTA: no borramos install.lua para no autodestruirnos
+for _, f in ipairs(files) do
+  if fs.exists(f) and not f:find("install.lua") then
+    fs.delete(f)
+  end
+end
+if fs.exists("lib") == false then fs.makeDir("lib") end
 
--- 🔹 crear directorios necesarios
-fs.makeDir("lib")
-
--- 🔹 descargar todos los archivos de la lista
-for _, file in ipairs(files) do
-  local url = repo .. file
-  local localPath = file
-  print("Descargando " .. file .. " ...")
-  local h = http.get(url)
-  if h then
-    local content = h.readAll()
-    h.close()
-    local f = fs.open(localPath, "w")
-    f.write(content)
-    f.close()
-    print(" -> OK")
-  else
-    print(" -> ERROR al descargar: " .. url)
+-- 🔹 descargar todos los archivos
+for _, f in ipairs(files) do
+  if not f:find("install.lua") then
+    print("Descargando "..f.." ...")
+    local h = http.get(rawURL..f)
+    if h then
+      local content = h.readAll()
+      h.close()
+      local dir = f:match("(.+)/[^/]+$")
+      if dir and not fs.exists(dir) then fs.makeDir(dir) end
+      local fh = fs.open(f, "w")
+      fh.write(content)
+      fh.close()
+      print(" -> OK")
+    else
+      print(" -> ERROR: "..f)
+    end
   end
 end
 
