@@ -1,6 +1,6 @@
 -- drmon installation script
 --
-local version = "0.39"
+local version = "0.40"
 
 local function installFromFileSystem(baseDir)
   local files = {
@@ -33,6 +33,11 @@ end
 
 print("Enter the base directory where the files are located (e.g., D:/GITHUB/cc):")
 local baseDir = read()
+
+-- Remove trailing slash if present
+if string.sub(baseDir, -1) == "/" then
+  baseDir = string.sub(baseDir, 1, #baseDir - 1)
+end
 
 print("Loading from local file system: " .. baseDir)
 installFromFileSystem(baseDir)
