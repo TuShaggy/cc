@@ -1,6 +1,6 @@
 -- drmon installation script
 --
-local version = "1.0.2"
+local version = "1.0.3"
 
 -- Create lib directory if it doesn't exist
 if not fs.exists("lib") then
@@ -8,7 +8,7 @@ if not fs.exists("lib") then
 end
 
 -- Files to copy
-local filesToCopy = {"startup.lua", "README.md"}
+local filesToCopy = {"startup.lua", "README.md", "cc_tweaked_api.md"}
 
 for _, file in ipairs(filesToCopy) do
   print("Installing " .. file .. " from local file system")
