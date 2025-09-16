@@ -14,7 +14,6 @@ end
 -- formatting
 function format_int(number)
 	if number == nil then number = 0 end
-
   local i, j, minus, int, fraction = tostring(number):find('([-]?)(%d+)([.]?%d*)')
   int = int:reverse():gsub("(%d%d%d)", "%1,")
   return minus .. int:reverse():gsub("^,", "") .. fraction
