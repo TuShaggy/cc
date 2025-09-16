@@ -12,7 +12,7 @@ fs.makeDir("lib")
 lib = http.get(libURL)
 libFile = lib.readAll()
 
-local file1 = fs.open("lib/f", "w")
+local file1 = fs.open("lib/f.lua", "w")
 file1.write(libFile)
 file1.close()
 
