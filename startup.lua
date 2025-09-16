@@ -232,9 +232,26 @@ local function toggleAutoInputGate()
   save_config()
 end
 
+local function increaseInputGate()
+  if autoInputGate == 0 then -- Only allow changes in manual mode
+    curInputGate = curInputGate + 1000
+    save_config()
+  end
+end
+
+local function decreaseInputGate()
+  if autoInputGate == 0 then -- Only allow changes in manual mode
+    curInputGate = curInputGate - 1000
+    if curInputGate < 0 then curInputGate = 0 end -- Prevent negative values
+    save_config()
+  end
+end
+
 -- UI elements
 local elements = {
   ui.button(ui.center(monX, 6), 10, 6, 1, "AU/MA", toggleAutoInputGate),
+  ui.button(ui.center(monX, 6) - 4, 10, 3, 1, "-", decreaseInputGate),
+  ui.button(ui.center(monX, 6) + 7, 10, 3, 1, "+", increaseInputGate),
 }
 
 function buttons()
@@ -290,6 +307,22 @@ function update()
         f.clear_area(mon, 1, 4, monX, 4)
         f.draw_text_lr(mon, 2, 4, 1, "Generation", generationRate, colors.white, colors.lime, colors.black)
         previousValues.generationRate = generationRate
+      end
+
+      -- Display manual gate setting when in manual mode
+      if autoInputGate == 0 then
+        local manualGateText = "Manual Gate: " .. f.format_int(curInputGate)
+        if previousValues.manualGateText ~= manualGateText then
+          f.clear_area(mon, 1, 9, monX, 9)
+          f.draw_text(mon, 2, 9, manualGateText, colors.white, colors.black)
+          previousValues.manualGateText = manualGateText
+        end
+      else
+        -- Clear manual gate text if switching back to auto
+        if previousValues.manualGateText then
+          f.clear_area(mon, 1, 9, monX, 9)
+          previousValues.manualGateText = nil
+        end
       end
 
       satPercent = math.ceil(ri.energySaturation / ri.maxEnergySaturation * 10000) * 0.01
@@ -367,8 +400,7 @@ function update()
       else
         -- Manual mode
         inputfluxgate.setSignalLowFlow(curInputGate)
-        -- In manual mode, you might want to set a default output or leave it as is.
-        -- For now, we'll let it be manually controlled outside the script or hold its last value.
+        -- In manual mode, output gate is not controlled by this script
       end
     end
     if fuelPercent and fuelPercent <= 10 then
