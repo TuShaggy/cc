@@ -6,9 +6,9 @@ local lowestFieldPercent = 15
 local activateOnCharged = 1
 
 -- please leave things untouched from here on
-os.loadAPI("lib/f.lua")
+os.loadAPI("lib/f")
 
-local version = "0.26"
+local version = "0.27"
 local autoInputGate = 1
 local curInputGate = 222000
 
@@ -200,10 +200,7 @@ function update()
     ri = reactor.getReactorInfo()
     if ri == nil then error("reactor has an invalid setup") end
 
-    for k, v in pairs (ri) do print(k.. ": ".. v) end
-    print("Output Gate: ", fluxgate.getSignalLowFlow())
-    print("Input Gate: ", inputfluxgate.getSignalLowFlow())
-
+    -- monitor output
     local statusColor = colors.red
     if ri.status == "online" or ri.status == "charged" then
       statusColor = colors.green
