@@ -10,7 +10,7 @@ function periphSearch(type)
          return peripheral.wrap(name)
       end
    end
-   return null
+   return nil
 end
 
 -- formatting
