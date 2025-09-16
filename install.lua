@@ -1,6 +1,6 @@
 -- drmon installation script
 --
-local version = "0.33"
+local version = "0.34"
 
 local function installFromFileSystem()
   local files = {
@@ -13,25 +13,30 @@ local function installFromFileSystem()
   for _, path in ipairs(files) do
     print("Installing " .. path .. " from local file system")
     local tempPath = "temp_" .. path
+
     -- Copy the file to a temporary location
-    shell.run("copy", path, tempPath)
+    local success, message = fs.copy(path, tempPath)
+    if success then
 
-    local f = fs.open(tempPath, "r")
-    if f then
-      local content = f.readAll()
-      f.close()
-      -- Delete the temporary file
-      fs.delete(tempPath)
+      local f = fs.open(tempPath, "r")
+      if f then
+        local content = f.readAll()
+        f.close()
+        -- Delete the temporary file
+        fs.delete(tempPath)
 
-      local outFile = fs.open(path, "w")
-      if outFile then
-        outFile.write(content)
-        outFile.close()
+        local outFile = fs.open(path, "w")
+        if outFile then
+          outFile.write(content)
+          outFile.close()
+        else
+          print("Error: Could not open " .. path .. " for writing")
+        end
       else
-        print("Error: Could not open " .. path .. " for writing")
+        print("Error: Could not open " .. tempPath .. " for reading")
       end
     else
-      print("Error: Could not open " .. tempPath .. " for reading")
+      print("Error: Could not copy " .. path .. " to " .. tempPath .. ": " .. (message or "Unknown error"))
     end
   end
 end
