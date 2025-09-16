@@ -1,6 +1,8 @@
 -- drmon installation script
 --
 
+os.loadAPI("textutils") -- Load the textutils API
+
 local repoURL = "https://api.github.com/repos/TuShaggy/cc/contents"
 local baseURL = "https://raw.githubusercontent.com/TuShaggy/cc/main/"
 
