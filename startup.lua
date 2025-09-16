@@ -6,6 +6,7 @@ local lowestFieldPercent = 15
 local activateOnCharged = 1
 
 os.loadAPI("lib/f.lua")
+os.loadAPI("lib/ui.lua")
 
 local version = "0.25"
 local autoInputGate = 1
@@ -44,6 +45,7 @@ if #fluxgateNames < 2 then
 end
 
 local mon = monitor
+local monX, monY = mon.getSize()
 
 local action = "None since reboot"
 local emergencyCharge = false
@@ -134,68 +136,34 @@ else
   load_config()
 end
 
+local function toggleAutoInputGate()
+  if autoInputGate == 1 then
+    autoInputGate = 0
+  else
+    autoInputGate = 1
+  end
+  save_config()
+end
+
+-- UI elements
+local elements = {
+  ui.label(2, 2, "Reactor Status:"),
+  ui.label(2, 4, "Generation:"),
+  ui.label(2, 6, "Temperature:"),
+  ui.label(2, 7, "Output Gate:"),
+  ui.label(2, 9, "Input Gate:"),
+  ui.label(2, 11, "Energy Saturation:"),
+  ui.label(2, 14, "Field Strength:"),
+  ui.label(2, 17, "Fuel:"),
+  ui.label(2, 19, "Action:"),
+  ui.button(ui.center(6), 10, 4, 2, "AU/MA", toggleAutoInputGate),
+}
+
 function buttons()
   while true do
     local event, side, xPos, yPos = os.pullEvent("monitor_touch")
-
-    -- output gate controls
-    if yPos == 8 then
-      local cFlow = fluxgate.getSignalLowFlow()
-      if xPos >= 2 and xPos <= 4 then
-        cFlow = cFlow-1000
-      elseif xPos >= 6 and xPos <= 9 then
-        cFlow = cFlow-10000
-      elseif xPos >= 10 and xPos <= 12 then
-        cFlow = cFlow-100000
-      elseif xPos >= 17 and xPos <= 19 then
-        cFlow = cFlow+100000
-      elseif xPos >= 21 and xPos <= 23 then
-        cFlow = cFlow+10000
-      elseif xPos >= 25 and xPos <= 27 then
-        cFlow = cFlow+1000
-      end
-      fluxgate.setSignalLowFlow(cFlow)
-    end
-
-    -- input gate controls
-    if yPos == 10 and autoInputGate == 0 and xPos ~= 14 and xPos ~= 15 then
-      if xPos >= 2 and xPos <= 4 then
-        curInputGate = curInputGate-1000
-      elseif xPos >= 6 and xPos <= 9 then
-        curInputGate = curInputGate-10000
-      elseif xPos >= 10 and xPos <= 12 then
-        curInputGate = curInputGate-100000
-      elseif xPos >= 17 and xPos <= 19 then
-        curInputGate = curInputGate+100000
-      elseif xPos >= 21 and xPos <= 23 then
-        curInputGate = curInputGate+10000
-      elseif xPos >= 25 and xPos <= 27 then
-        curInputGate = curInputGate+1000
-      end
-      inputfluxgate.setSignalLowFlow(curInputGate)
-      save_config()
-    end
-
-    -- input gate toggle
-    if yPos == 10 and ( xPos == 14 or xPos == 15) then
-      if autoInputGate == 1 then
-        autoInputGate = 0
-      else
-        autoInputGate = 1
-      end
-      save_config()
-      f.clear(mon) -- Clear the entire screen on mode change
-    end
+    ui.handleClick(xPos, yPos, elements)
   end
-end
-
-function drawButtons(y)
-  f.draw_text(mon, 2, y, " < ", colors.white, colors.gray)
-  f.draw_text(mon, 6, y, " <<", colors.white, colors.gray)
-  f.draw_text(mon, 10, y, "<<<", colors.white, colors.gray)
-  f.draw_text(mon, 17, y, ">>>", colors.white, colors.gray)
-  f.draw_text(mon, 21, y, ">> ", colors.white, colors.gray)
-  f.draw_text(mon, 25, y, " > ", colors.white, colors.gray)
 end
 
 local previousValues = {}
@@ -297,7 +265,7 @@ function update()
           fieldStrengthLabel = "Field Strength T:" .. targetStrength
         end
 
-        f.draw_text_lr(mon, 2, 14, 1, fieldStrengthLabel, fieldPercentText, colors.white, fieldColor, colors.black)
+        f.draw_text_lr(mon, 2, 14, 1, "Field Strength", fieldPercentText, colors.white, fieldColor, colors.black)
         f.progress_bar(mon, 2, 15, monX-2, fieldPercent, 100, fieldColor, colors.gray)
         previousValues.fieldPercentText = fieldPercentText
       end
@@ -371,6 +339,11 @@ function update()
       action = "Temp > " .. maxTemperature
       emergencyTemp = true
       if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
+    end
+
+    -- Draw UI elements
+    for _, element in ipairs(elements) do
+      ui.draw(element, mon)
     end
 
     sleep(0.1)
