@@ -65,3 +65,12 @@ function clear(mon)
   mon.clear()
   mon.setCursorPos(1,1)
 end
+
+function clear_area(mon, x1, y1, x2, y2)
+  if not mon then return end
+  mon.setBackgroundColor(colors.black)
+  for y = y1, y2 do
+    mon.setCursorPos(x1, y)
+    mon.write(string.rep(" ", x2 - x1 + 1))
+  end
+end
