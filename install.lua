@@ -1,9 +1,8 @@
 -- drmon installation script
 --
---
 
-local libURL = "https://raw.githubusercontent.com/acidjazz/drmon/master/lib/f.lua"
-local startupURL = "https://raw.githubusercontent.com/acidjazz/drmon/master/drmon.lua"
+local libURL = "https://raw.githubusercontent.com/TuShaggy/cc/main/lib/f.lua"
+local startupURL = "https://raw.githubusercontent.com/TuShaggy/cc/main/startup.lua"
 local lib, startup
 local libFile, startupFile
 
@@ -18,7 +17,6 @@ file1.close()
 
 startup = http.get(startupURL)
 startupFile = startup.readAll()
-
 
 local file2 = fs.open("startup", "w")
 file2.write(startupFile)
