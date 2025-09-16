@@ -1,6 +1,6 @@
 -- drmon installation script
 --
-local version = "0.42"
+local version = "0.43"
 
 local function installFromFileSystem()
   local files = {
