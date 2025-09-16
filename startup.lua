@@ -178,6 +178,11 @@ function update()
     local ri = reactor.getReactorInfo()
     if not ri then error("Reactor has an invalid setup") end
 
+    -- Always calculate these values for control logic
+    satPercent = math.ceil(ri.energySaturation / ri.maxEnergySaturation * 10000) * 0.01
+    fieldPercent = math.ceil(ri.fieldStrength / ri.maxFieldStrength * 10000) * 0.01
+    fuelPercent = 100 - math.ceil(ri.fuelConversion / ri.maxFuelConversion * 10000) * 0.01
+
     -- Critical updates (every 0.1s)
     if currentTime - lastCriticalUpdate >= criticalUpdateInterval then
       local temperature = f.format_int(ri.temperature) .. "C"
@@ -212,7 +217,6 @@ function update()
         previousValues.generationRate = generationRate
       end
 
-      satPercent = math.ceil(ri.energySaturation / ri.maxEnergySaturation * 10000) * 0.01
       local satPercentText = satPercent .. "%"
       if previousValues.satPercentText ~= satPercentText then
         f.clear_area(mon, 1, 8, monX, 9)
@@ -221,7 +225,6 @@ function update()
         previousValues.satPercentText = satPercentText
       end
 
-      fieldPercent = math.ceil(ri.fieldStrength / ri.maxFieldStrength * 10000) * 0.01
       local fieldPercentText = fieldPercent .. "%"
       if previousValues.fieldPercentText ~= fieldPercentText then
         local fieldColor = colors.red
@@ -234,7 +237,6 @@ function update()
         previousValues.fieldPercentText = fieldPercentText
       end
 
-      fuelPercent = 100 - math.ceil(ri.fuelConversion / ri.maxFuelConversion * 10000) * 0.01
       local fuelPercentText = fuelPercent .. "%"
       if previousValues.fuelPercentText ~= fuelPercentText then
         local fuelColor = colors.red
