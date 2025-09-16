@@ -34,8 +34,8 @@ local emergencyCharge = false
 local emergencyTemp = false
 
 monitor = f.periphSearch("monitor")
-inputfluxgate = f.periphSearch("flux_gate")
-fluxgate = f.periphSearch(fluxgateSide)
+inputfluxgate = f.periphSearch("flow_gate")
+fluxgate = f.periphSearch(flowgateSide)
 reactor = peripheral.wrap(reactorSide)
 
 if monitor == nil then
