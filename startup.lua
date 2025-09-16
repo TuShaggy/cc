@@ -194,9 +194,24 @@ end
 -- ========================
 -- 🔹 LOOP DE ACTUALIZACIÓN
 -- ========================
+function drawStaticUI()
+  f.clear(mon)
+  f.draw_text(mon, 2, 2, "Reactor Status", colors.white, colors.black)
+  f.draw_text(mon, 2, 4, "Generation", colors.white, colors.black)
+  f.draw_text(mon, 2, 6, "Temperature", colors.white, colors.black)
+  f.draw_text(mon, 2, 7, "Output Gate", colors.white, colors.black)
+  f.draw_text(mon, 2, 9, "Input Gate", colors.white, colors.black)
+  f.draw_text(mon, 2, 11, "Energy Saturation", colors.white, colors.black)
+  f.draw_text(mon, 2, 14, "Field Strength", colors.white, colors.black)
+  f.draw_text(mon, 2, 17, "Fuel", colors.white, colors.black)
+  f.draw_text(mon, 2, 19, "Action", colors.white, colors.black)
+end
 function update()
+  drawStaticUI() -- dibuja marco fijo una sola vez
+  while true do
+    ri = reactor.getReactorInfo()
+    if ri == nil then error("reactor has an invalid setup") end
   while true do 
-    f.clear(mon)
     ri = reactor.getReactorInfo()
     if ri == nil then error("reactor has an invalid setup") end
 
