@@ -198,6 +198,8 @@ end
 
 function update()
   while true do
+    f.clear(mon) -- limpiar pantalla correctamente
+
     mon.setCursorPos(1,1) -- instead of f.clear(mon)
    local ri = reactor.getReactorInfo()
 if not ri then
@@ -316,7 +318,7 @@ end
       if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
     end
 
-    sleep(0.1)
+    sleep(0.2) -- menos parpadeo, pero sigue siendo responsivo
   end
 end
 
