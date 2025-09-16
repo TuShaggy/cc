@@ -197,9 +197,7 @@ function drawButtons(y)
 end
 
 function update()
-  while true do 
-    f.clear(mon)
-
+  while true do
    local ri = reactor.getReactorInfo()
 if not ri then
   error("reactor has an invalid setup")
