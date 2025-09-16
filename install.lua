@@ -1,6 +1,7 @@
 -- drmon installation script
 --
-local version = "0.47"
+os.loadAPI("filesystem") -- Load the filesystem API
+local version = "0.48"
 
 local function installFromFileSystem()
   local files = {
