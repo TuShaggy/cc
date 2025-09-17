@@ -79,7 +79,7 @@ local lowestFieldPercent = 15
 local activateOnCharged = 1
 
 -- program variables
-local version = "1.0.0"
+local version = "1.1.0"
 
 -- Detect peripherals
 local monitor, reactor, speaker
@@ -211,6 +211,7 @@ function update()
       local error = satPercent - targetSaturation
       local outputFactor = 1 + (Kp * error / 100)
       outputFlux = ri.generationRate * outputFactor
+      outputFlux = math.max(0, outputFlux) -- Prevent negative flow rates
       fluxgate.setSignalLowFlow(outputFlux)
     else
       -- If not online, close output gate and set input to 0 unless charging
@@ -305,13 +306,17 @@ function update()
         previousValues.fuelPercentText = fuelPercentText
       end
 
+      -- Update action text if it has changed
       if previousValues.actionText ~= action then
-        f.clear_area(mon, 1, 17, monX, 19)
+        f.clear_area(mon, 1, 17, monX, 17)
         f.draw_text_lr(mon, 2, 17, 1, "Action:", action, colors.gray, colors.gray, colors.black)
-        f.draw_text(mon, 2, 18, "Input: " .. f.format_int(inputFlux), colors.white, colors.black)
-        f.draw_text(mon, 2, 19, "Output: " .. f.format_int(outputFlux), colors.white, colors.black)
         previousValues.actionText = action
       end
+
+      -- Always update flux values on screen during normal update interval
+      f.clear_area(mon, 1, 18, monX, 19)
+      f.draw_text(mon, 2, 18, "Input:  " .. f.format_int(inputFlux), colors.white, colors.black)
+      f.draw_text(mon, 2, 19, "Output: " .. f.format_int(outputFlux), colors.white, colors.black)
 
       lastUpdate = currentTime
     end
