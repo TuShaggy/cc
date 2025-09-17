@@ -79,7 +79,7 @@ local lowestFieldPercent = 15
 local activateOnCharged = 1
 
 -- program variables
-local version = "1.4.0"
+local version = "1.4.1"
 
 -- Detect peripherals
 local monitor, reactor, speaker
