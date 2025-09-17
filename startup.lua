@@ -165,7 +165,6 @@ if not fluxgate then error("No valid output fluxgate was found") end
 if not inputfluxgate then error("No valid input fluxgate was found") end
 
 local previousValues = {}
--local lastUpdate = 0
 local criticalUpdateInterval = 0.1
 local normalUpdateInterval = 0.3
 
