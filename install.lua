@@ -1,6 +1,6 @@
 -- drmon installation script
 --
-local version = "1.3.0"
+local version = "1.4.0"
 local repoBaseUrl = "https://raw.githubusercontent.com/TuShaggy/cc/main/"
 
 local filesToDownload = {
