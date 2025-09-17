@@ -287,7 +287,11 @@ function controlReactor()
         action = "Activating"
         reactor.activateReactor()
 
-      else -- Offline, stopping, etc.
+      elseif g_ri.status == "offline" and g_ri.energySaturation < g_ri.maxEnergySaturation then
+        action = "Requesting Charge"
+        reactor.chargeReactor()
+
+      else -- Idle, stopping, etc.
         action = "Idle/Stopped"
         g_inputFlux = 0
         g_outputFlux = 0
