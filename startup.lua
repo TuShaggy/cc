@@ -286,28 +286,18 @@ function controlReactor()
       elseif g_ri.status == "charged" and activateOnCharged == 1 then
         action = "Activating"
         reactor.activateReactor()
-
-      elseif g_ri.status == "stopping" then
-        action = "Waiting for shutdown"
+      
+      elseif (g_ri.status == "offline" or g_ri.status == "stopping") and g_ri.energySaturation < g_ri.maxEnergySaturation then
+        action = "Requesting Charge"
+        reactor.chargeReactor()
+        -- Set flux to 0 for this tick, next tick will handle 'charging' state
         g_inputFlux = 0
         g_outputFlux = 0
         inputfluxgate.setSignalLowFlow(g_inputFlux)
         fluxgate.setSignalLowFlow(g_outputFlux)
 
-      elseif g_ri.status == "offline" then
-        if g_ri.energySaturation < g_ri.maxEnergySaturation then
-          action = "Requesting Charge"
-          reactor.chargeReactor()
-        else
-          action = "Idle (Fully Charged)"
-        end
-        g_inputFlux = 0
-        g_outputFlux = 0
-        inputfluxgate.setSignalLowFlow(g_inputFlux)
-        fluxgate.setSignalLowFlow(g_outputFlux)
-        
-      else -- Unknown state
-        action = "Idle/Unknown State"
+      else -- Idle, fully charged, or unknown state
+        action = "Idle"
         g_inputFlux = 0
         g_outputFlux = 0
         inputfluxgate.setSignalLowFlow(g_inputFlux)
