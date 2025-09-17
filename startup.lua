@@ -79,7 +79,7 @@ local lowestFieldPercent = 15
 local activateOnCharged = 1
 
 -- program variables
-local version = "1.4.1"
+local version = "1.5.0"
 
 -- Detect peripherals
 local monitor, reactor, speaker
@@ -213,40 +213,30 @@ function controlReactor()
       g_fieldPercent = (g_ri.fieldStrength / g_ri.maxFieldStrength) * 100
       g_fuelPercent = 100 - (g_ri.fuelConversion / g_ri.maxFuelConversion) * 100
 
-      -- Default flux values to safe state (off)
-      g_inputFlux = 0
-      g_outputFlux = 0
+      -- 1. Determine Action and Flux values based on state
+      local inputFlux, outputFlux = 0, 0 -- Start with safe defaults for this cycle
 
-      -- Determine action based on priority
       if g_ri.temperature > maxTemperature then
         action = "EMERGENCY: Temp High"
         reactor.stopReactor()
         emergencyTemp = true
-        if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
       elseif g_fuelPercent <= 10 then
         action = "EMERGENCY: Fuel Low"
         reactor.stopReactor()
-        if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
       elseif g_fieldPercent <= lowestFieldPercent and g_ri.status == "online" then
         action = "EMERGENCY: Field Low"
         reactor.stopReactor()
-        reactor.chargeReactor() -- Immediately request charge after stopping
         emergencyCharge = true
-        if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
       elseif g_ri.status == "online" then
         action = "Running"
-        emergencyCharge = false
-        emergencyTemp = false
-        -- Input gate control
-        g_inputFlux = g_ri.fieldDrainRate / (1 - (targetStrength / 100))
-        -- Output gate control
-        local error = g_satPercent - targetSaturation
-        local outputFactor = 1 + (Kp * error / 100)
-        g_outputFlux = g_ri.generationRate * outputFactor
-        g_outputFlux = math.max(0, g_outputFlux)
+        emergencyCharge, emergencyTemp = false, false
+        inputFlux = g_ri.fieldDrainRate / (1 - (targetStrength / 100))
+        local err = g_satPercent - targetSaturation
+        outputFlux = g_ri.generationRate * (1 + (Kp * err / 100))
+        outputFlux = math.max(0, outputFlux)
       elseif g_ri.status == "charging" then
         action = "Charging"
-        g_inputFlux = 900000
+        inputFlux = 900000
         emergencyCharge = false
       elseif g_ri.status == "charged" and activateOnCharged == 1 then
         action = "Activating"
@@ -258,9 +248,14 @@ function controlReactor()
         action = "Idle"
       end
 
-      -- Apply calculated flux values
+      -- 2. Update global variables for display
+      g_inputFlux = inputFlux
+      g_outputFlux = outputFlux
+
+      -- 3. Apply final flux values to peripherals
       inputfluxgate.setSignalLowFlow(g_inputFlux)
       fluxgate.setSignalLowFlow(g_outputFlux)
+
     else
       action = "Reactor connection lost!"
       g_inputFlux, g_outputFlux = 0, 0
