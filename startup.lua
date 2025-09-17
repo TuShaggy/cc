@@ -176,25 +176,10 @@ function drawScreen()
   while true do
     local currentTime = os.time()
 
-    -- Critical updates (every 0.1s)
-    if currentTime - (previousValues.lastCriticalUpdate or 0) >= criticalUpdateInterval then
-      if g_ri and g_ri.temperature then
-        local temperature = f.format_int(g_ri.temperature) .. "C"
-        if previousValues.temperature ~= temperature then
-          local tempColor = colors.red
-          if g_ri.temperature <= 5000 then tempColor = colors.green
-          elseif g_ri.temperature <= 6500 then tempColor = colors.orange end
-          f.clear_area(mon, 1, 6, monX, 6)
-          f.draw_text_lr(mon, 2, 6, 1, "Temperature", temperature, colors.white, tempColor, colors.black)
-          previousValues.temperature = temperature
-        end
-      end
-      previousValues.lastCriticalUpdate = currentTime
-    end
-
-    -- Normal updates (every 0.3s)
+    -- Normal update interval (0.3s)
     if currentTime - (previousValues.lastNormalUpdate or 0) >= normalUpdateInterval then
       if g_ri and g_ri.status then
+        -- Update Status
         local status = string.upper(g_ri.status)
         if previousValues.status ~= status then
           local statusColor = colors.red
@@ -206,6 +191,7 @@ function drawScreen()
           previousValues.status = status
         end
 
+        -- Update Generation
         local generationRate = f.format_int(g_ri.generationRate) .. " rf/t"
         if previousValues.generationRate ~= generationRate then
           f.clear_area(mon, 1, 4, monX, 4)
@@ -213,44 +199,45 @@ function drawScreen()
           previousValues.generationRate = generationRate
         end
 
+        -- Update Temperature
+        local temperature = f.format_int(g_ri.temperature) .. "C"
+        if previousValues.temperature ~= temperature then
+          local tempColor = colors.red
+          if g_ri.temperature <= 5000 then tempColor = colors.green
+          elseif g_ri.temperature <= 6500 then tempColor = colors.orange end
+          f.clear_area(mon, 1, 6, monX, 6)
+          f.draw_text_lr(mon, 2, 6, 1, "Temperature", temperature, colors.white, tempColor, colors.black)
+          previousValues.temperature = temperature
+        end
+
+        -- Update Saturation
         local satPercentText = g_satPercent .. "%"
-        if previousValues.satPercentText ~= satPercentText then
-          f.clear_area(mon, 1, 8, monX, 9)
-          f.draw_text_lr(mon, 2, 8, 1, "Energy Saturation", satPercentText, colors.white, colors.white, colors.black)
-          f.progress_bar(mon, 2, 9, monX - 2, g_satPercent, 100, colors.blue, colors.gray)
-          previousValues.satPercentText = satPercentText
-        end
+        f.clear_area(mon, 1, 8, monX, 9)
+        f.draw_text_lr(mon, 2, 8, 1, "Energy Saturation", satPercentText, colors.white, colors.white, colors.black)
+        f.progress_bar(mon, 2, 9, monX - 2, g_satPercent, 100, colors.blue, colors.gray)
 
+        -- Update Field Strength
         local fieldPercentText = g_fieldPercent .. "%"
-        if previousValues.fieldPercentText ~= fieldPercentText then
-          local fieldColor = colors.red
-          if g_fieldPercent >= 50 then fieldColor = colors.green
-          elseif g_fieldPercent > 30 then fieldColor = colors.orange end
-          local fieldLabel = "Field Strength T:" .. targetStrength
-          f.clear_area(mon, 1, 11, monX, 12)
-          f.draw_text_lr(mon, 2, 11, 1, fieldLabel, fieldPercentText, colors.white, fieldColor, colors.black)
-          f.progress_bar(mon, 2, 12, monX - 2, g_fieldPercent, 100, fieldColor, colors.gray)
-          previousValues.fieldPercentText = fieldPercentText
-        end
+        local fieldColor = colors.red
+        if g_fieldPercent >= 50 then fieldColor = colors.green
+        elseif g_fieldPercent > 30 then fieldColor = colors.orange end
+        local fieldLabel = "Field Strength T:" .. targetStrength
+        f.clear_area(mon, 1, 11, monX, 12)
+        f.draw_text_lr(mon, 2, 11, 1, fieldLabel, fieldPercentText, colors.white, fieldColor, colors.black)
+        f.progress_bar(mon, 2, 12, monX - 2, g_fieldPercent, 100, fieldColor, colors.gray)
 
+        -- Update Fuel
         local fuelPercentText = g_fuelPercent .. "%"
-        if previousValues.fuelPercentText ~= fuelPercentText then
-          local fuelColor = colors.red
-          if g_fuelPercent >= 70 then fuelColor = colors.green
-          elseif g_fuelPercent > 30 then fuelColor = colors.orange end
-          f.clear_area(mon, 1, 14, monX, 15)
-          f.draw_text_lr(mon, 2, 14, 1, "Fuel", fuelPercentText, colors.white, fuelColor, colors.black)
-          f.progress_bar(mon, 2, 15, monX - 2, g_fuelPercent, 100, fuelColor, colors.gray)
-          previousValues.fuelPercentText = fuelPercentText
-        end
+        local fuelColor = colors.red
+        if g_fuelPercent >= 70 then fuelColor = colors.green
+        elseif g_fuelPercent > 30 then fuelColor = colors.orange end
+        f.clear_area(mon, 1, 14, monX, 15)
+        f.draw_text_lr(mon, 2, 14, 1, "Fuel", fuelPercentText, colors.white, fuelColor, colors.black)
+        f.progress_bar(mon, 2, 15, monX - 2, g_fuelPercent, 100, fuelColor, colors.gray)
 
-        if previousValues.actionText ~= action then
-          f.clear_area(mon, 1, 17, monX, 17)
-          f.draw_text_lr(mon, 2, 17, 1, "Action:", action, colors.gray, colors.gray, colors.black)
-          previousValues.actionText = action
-        end
-
-        f.clear_area(mon, 1, 18, monX, 19)
+        -- Update Action & Flux
+        f.clear_area(mon, 1, 17, monX, 19)
+        f.draw_text_lr(mon, 2, 17, 1, "Action:", action, colors.gray, colors.gray, colors.black)
         f.draw_text(mon, 2, 18, "Input:  " .. f.format_int(g_inputFlux), colors.white, colors.black)
         f.draw_text(mon, 2, 19, "Output: " .. f.format_int(g_outputFlux), colors.white, colors.black)
       end
@@ -266,74 +253,89 @@ function controlReactor()
 
   while true do
     g_ri = reactor.getReactorInfo()
-    if not g_ri then
-      action = "Reactor connection lost!"
-      sleep(1)
-      goto continue
-    end
 
-    g_satPercent = math.ceil(g_ri.energySaturation / g_ri.maxEnergySaturation * 10000) * 0.01
-    g_fieldPercent = math.ceil(g_ri.fieldStrength / g_ri.maxFieldStrength * 10000) * 0.01
-    g_fuelPercent = 100 - math.ceil(g_ri.fuelConversion / g_ri.maxFuelConversion * 10000) * 0.01
+    if g_ri then
+      -- Calculate percentages
+      g_satPercent = math.ceil(g_ri.energySaturation / g_ri.maxEnergySaturation * 10000) * 0.01
+      g_fieldPercent = math.ceil(g_ri.fieldStrength / g_ri.maxFieldStrength * 10000) * 0.01
+      g_fuelPercent = 100 - math.ceil(g_ri.fuelConversion / g_ri.maxFuelConversion * 10000) * 0.01
 
-    if emergencyCharge then reactor.chargeReactor() end
-    if emergencyTemp and g_ri.status == "stopping" and g_ri.temperature < safeTemperature then
-      reactor.activateReactor()
-      emergencyTemp = false
-    end
-    if g_ri.status == "charged" and activateOnCharged == 1 then
-      reactor.activateReactor()
-    end
-
-    if g_ri.status == "online" then
-      local fluxval = g_ri.fieldDrainRate / (1 - (targetStrength / 100))
-      inputfluxgate.setSignalLowFlow(fluxval)
-      g_inputFlux = fluxval
-
-      local error = g_satPercent - targetSaturation
-      local outputFactor = 1 + (Kp * error / 100)
-      g_outputFlux = g_ri.generationRate * outputFactor
-      g_outputFlux = math.max(0, g_outputFlux)
-      fluxgate.setSignalLowFlow(g_outputFlux)
-    else -- Not online
-      g_outputFlux = 0
-      fluxgate.setSignalLowFlow(g_outputFlux)
-      if g_ri.status == "charging" then
-        inputfluxgate.setSignalLowFlow(900000)
-        g_inputFlux = 900000
-        emergencyCharge = false
-      else
-        g_inputFlux = 0
+      -- State machine for reactor control
+      if g_ri.status == "online" then
+        action = "Running"
+        -- Input gate control
+        local fluxval = g_ri.fieldDrainRate / (1 - (targetStrength / 100))
+        g_inputFlux = fluxval
         inputfluxgate.setSignalLowFlow(g_inputFlux)
-      end
-    end
 
-    if g_fuelPercent and g_fuelPercent <= 10 then
-      reactor.stopReactor()
-      action = "Fuel low, refuel"
-      if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
+        -- Output gate control (proportional)
+        local error = g_satPercent - targetSaturation
+        local outputFactor = 1 + (Kp * error / 100)
+        g_outputFlux = g_ri.generationRate * outputFactor
+        g_outputFlux = math.max(0, g_outputFlux)
+        fluxgate.setSignalLowFlow(g_outputFlux)
+
+      elseif g_ri.status == "charging" then
+        action = "Charging"
+        g_inputFlux = 900000
+        g_outputFlux = 0
+        inputfluxgate.setSignalLowFlow(g_inputFlux)
+        fluxgate.setSignalLowFlow(g_outputFlux)
+        emergencyCharge = false
+
+      elseif g_ri.status == "charged" and activateOnCharged == 1 then
+        action = "Activating"
+        reactor.activateReactor()
+
+      else -- Offline, stopping, etc.
+        action = "Idle/Stopped"
+        g_inputFlux = 0
+        g_outputFlux = 0
+        inputfluxgate.setSignalLowFlow(g_inputFlux)
+        fluxgate.setSignalLowFlow(g_outputFlux)
+      end
+
+      -- Emergency/Safety overrides
+      if emergencyCharge then reactor.chargeReactor() end
+      if emergencyTemp and g_ri.status == "stopping" and g_ri.temperature < safeTemperature then
+        reactor.activateReactor()
+        emergencyTemp = false
+      end
+      if g_fuelPercent and g_fuelPercent <= 10 then
+        reactor.stopReactor()
+        action = "Fuel low, refuel"
+        if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
+      end
+      if g_fieldPercent and g_fieldPercent <= lowestFieldPercent and g_ri.status == "online" then
+        action = "Field < " .. lowestFieldPercent .. "%"
+        reactor.stopReactor()
+        reactor.chargeReactor()
+        emergencyCharge = true
+        if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
+      end
+      if g_ri.temperature > maxTemperature then
+        reactor.stopReactor()
+        action = "Temp > " .. maxTemperature
+        emergencyTemp = true
+        if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
+      end
+    else
+      action = "Reactor connection lost!"
+      g_inputFlux, g_outputFlux = 0, 0
+      sleep(1) -- Wait before retrying
     end
-    if g_fieldPercent and g_fieldPercent <= lowestFieldPercent and g_ri.status == "online" then
-      action = "Field < " .. lowestFieldPercent .. "%"
-      reactor.stopReactor()
-      reactor.chargeReactor()
-      emergencyCharge = true
-      if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
-    end
-    if g_ri.temperature > maxTemperature then
-      reactor.stopReactor()
-      action = "Temp > " .. maxTemperature
-      emergencyTemp = true
-      if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
-    end
-    ::continue::
     sleep(0.1)
   end
 end
 
 -- Initial data fetch to prevent blank screen
 g_ri = reactor.getReactorInfo()
-if not g_ri then g_ri = {} end
+if not g_ri then g_ri = {
+  status = "offline", temperature = 0, generationRate = 0,
+  energySaturation = 0, maxEnergySaturation = 1,
+  fieldStrength = 0, maxFieldStrength = 1,
+  fuelConversion = 0, maxFuelConversion = 1
+} end
 
 parallel.waitForAll(drawScreen, controlReactor)
 
