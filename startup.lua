@@ -172,6 +172,10 @@ local normalUpdateInterval = 0.3
 function update()
   local lastCriticalUpdate = 0
   local fuelPercent, fieldPercent, satPercent -- Declare variables at a higher scope
+  local inputFlux = 0
+  local outputFlux = 0
+  local targetSaturation = 75 -- Target for energy saturation
+  local Kp = 2 -- Proportional gain for output control
 
   while true do
     local currentTime = os.time()
@@ -187,6 +191,7 @@ function update()
     if emergencyCharge then reactor.chargeReactor() end
     if ri.status == "charging" then
       inputfluxgate.setSignalLowFlow(900000)
+      inputFlux = 900000 -- Update for display
       emergencyCharge = false
     end
     if emergencyTemp and ri.status == "stopping" and ri.temperature < safeTemperature then
@@ -200,14 +205,20 @@ function update()
       -- Auto-mode for input gate (field strength)
       local fluxval = ri.fieldDrainRate / (1 - (targetStrength / 100))
       inputfluxgate.setSignalLowFlow(fluxval)
+      inputFlux = fluxval
 
-      -- Auto-mode for output gate (energy saturation)
-      if satPercent > 80 then
-        fluxgate.setSignalLowFlow(ri.generationRate * 1.1) -- Increase output if saturation is high
-      elseif satPercent < 70 then
-        fluxgate.setSignalLowFlow(ri.generationRate * 0.9) -- Decrease output if saturation is low
-      else
-        fluxgate.setSignalLowFlow(ri.generationRate) -- Stabilize output
+      -- Proportional control for output gate (energy saturation)
+      local error = satPercent - targetSaturation
+      local outputFactor = 1 + (Kp * error / 100)
+      outputFlux = ri.generationRate * outputFactor
+      fluxgate.setSignalLowFlow(outputFlux)
+    else
+      -- If not online, close output gate and set input to 0 unless charging
+      outputFlux = 0
+      fluxgate.setSignalLowFlow(outputFlux)
+      if ri.status ~= "charging" then
+        inputFlux = 0
+        inputfluxgate.setSignalLowFlow(inputFlux)
       end
     end
     if fuelPercent and fuelPercent <= 10 then
@@ -295,8 +306,10 @@ function update()
       end
 
       if previousValues.actionText ~= action then
-        f.clear_area(mon, 1, 17, monX, 17)
+        f.clear_area(mon, 1, 17, monX, 19)
         f.draw_text_lr(mon, 2, 17, 1, "Action:", action, colors.gray, colors.gray, colors.black)
+        f.draw_text(mon, 2, 18, "Input: " .. f.format_int(inputFlux), colors.white, colors.black)
+        f.draw_text(mon, 2, 19, "Output: " .. f.format_int(outputFlux), colors.white, colors.black)
         previousValues.actionText = action
       end
 
