@@ -79,7 +79,7 @@ local lowestFieldPercent = 15
 local activateOnCharged = 1
 
 -- program variables
-local version = "1.1.0"
+local version = "1.2.0"
 
 -- Detect peripherals
 local monitor, reactor, speaker
@@ -260,73 +260,67 @@ function controlReactor()
       g_fieldPercent = math.ceil(g_ri.fieldStrength / g_ri.maxFieldStrength * 10000) * 0.01
       g_fuelPercent = 100 - math.ceil(g_ri.fuelConversion / g_ri.maxFuelConversion * 10000) * 0.01
 
-      -- State machine for reactor control
-      if g_ri.status == "online" then
-        action = "Running"
-        -- Input gate control
-        local fluxval = g_ri.fieldDrainRate / (1 - (targetStrength / 100))
-        g_inputFlux = fluxval
-        inputfluxgate.setSignalLowFlow(g_inputFlux)
-
-        -- Output gate control (proportional)
-        local error = g_satPercent - targetSaturation
-        local outputFactor = 1 + (Kp * error / 100)
-        g_outputFlux = g_ri.generationRate * outputFactor
-        g_outputFlux = math.max(0, g_outputFlux)
-        fluxgate.setSignalLowFlow(g_outputFlux)
-
-      elseif g_ri.status == "charging" then
-        action = "Charging"
-        g_inputFlux = 900000
-        g_outputFlux = 0
-        inputfluxgate.setSignalLowFlow(g_inputFlux)
-        fluxgate.setSignalLowFlow(g_outputFlux)
-        emergencyCharge = false
-
-      elseif g_ri.status == "charged" and activateOnCharged == 1 then
-        action = "Activating"
-        reactor.activateReactor()
-      
-      elseif (g_ri.status == "offline" or g_ri.status == "stopping") and g_ri.energySaturation < g_ri.maxEnergySaturation then
-        action = "Requesting Charge"
-        reactor.chargeReactor()
-        -- Set flux to 0 for this tick, next tick will handle 'charging' state
-        g_inputFlux = 0
-        g_outputFlux = 0
-        inputfluxgate.setSignalLowFlow(g_inputFlux)
-        fluxgate.setSignalLowFlow(g_outputFlux)
-
-      else -- Idle, fully charged, or unknown state
-        action = "Idle"
-        g_inputFlux = 0
-        g_outputFlux = 0
-        inputfluxgate.setSignalLowFlow(g_inputFlux)
-        fluxgate.setSignalLowFlow(g_outputFlux)
-      end
-
-      -- Emergency/Safety overrides
-      if emergencyCharge then reactor.chargeReactor() end
-      if emergencyTemp and g_ri.status == "stopping" and g_ri.temperature < safeTemperature then
-        reactor.activateReactor()
-        emergencyTemp = false
-      end
-      if g_fuelPercent and g_fuelPercent <= 10 then
+      -- 1. Safety Overrides (Highest Priority)
+      if g_ri.temperature > maxTemperature then
+        action = "EMERGENCY: Temp > " .. maxTemperature
         reactor.stopReactor()
-        action = "Fuel low, refuel"
+        emergencyTemp = true
         if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
-      end
-      if g_fieldPercent and g_fieldPercent <= lowestFieldPercent and g_ri.status == "online" then
-        action = "Field < " .. lowestFieldPercent .. "%"
+      elseif g_fieldPercent and g_fieldPercent <= lowestFieldPercent and g_ri.status == "online" then
+        action = "EMERGENCY: Field < " .. lowestFieldPercent .. "%"
         reactor.stopReactor()
         reactor.chargeReactor()
         emergencyCharge = true
         if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
-      end
-      if g_ri.temperature > maxTemperature then
+      elseif g_fuelPercent and g_fuelPercent <= 10 then
+        action = "EMERGENCY: Fuel low"
         reactor.stopReactor()
-        action = "Temp > " .. maxTemperature
-        emergencyTemp = true
         if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
+      
+      -- 2. Normal State Machine
+      else
+        if g_ri.status == "online" then
+          action = "Running"
+          emergencyTemp = false
+          -- Input gate control
+          local fluxval = g_ri.fieldDrainRate / (1 - (targetStrength / 100))
+          g_inputFlux = fluxval
+          inputfluxgate.setSignalLowFlow(g_inputFlux)
+          -- Output gate control (proportional)
+          local error = g_satPercent - targetSaturation
+          local outputFactor = 1 + (Kp * error / 100)
+          g_outputFlux = g_ri.generationRate * outputFactor
+          g_outputFlux = math.max(0, g_outputFlux)
+          fluxgate.setSignalLowFlow(g_outputFlux)
+
+        elseif g_ri.status == "charging" then
+          action = "Charging"
+          g_inputFlux = 900000
+          g_outputFlux = 0
+          inputfluxgate.setSignalLowFlow(g_inputFlux)
+          fluxgate.setSignalLowFlow(g_outputFlux)
+          emergencyCharge = false
+
+        elseif g_ri.status == "charged" and activateOnCharged == 1 then
+          action = "Activating"
+          reactor.activateReactor()
+
+        elseif (g_ri.status == "offline" or g_ri.status == "stopping") and g_ri.energySaturation < g_ri.maxEnergySaturation then
+          action = "Requesting Charge"
+          reactor.chargeReactor()
+          -- Set flux to 0 for this tick, next tick will handle 'charging' state
+          g_inputFlux = 0
+          g_outputFlux = 0
+          inputfluxgate.setSignalLowFlow(g_inputFlux)
+          fluxgate.setSignalLowFlow(g_outputFlux)
+
+        else -- Idle, fully charged, or unknown state
+          action = "Idle"
+          g_inputFlux = 0
+          g_outputFlux = 0
+          inputfluxgate.setSignalLowFlow(g_inputFlux)
+          fluxgate.setSignalLowFlow(g_outputFlux)
+        end
       end
     else
       action = "Reactor connection lost!"

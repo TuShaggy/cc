@@ -24,5 +24,8 @@ This script is based on and inspired by the following resources:
 -   **YouTube Showcase/Tutorial:**
     -   [https://www.youtube.com/watch?v=8rBhQP1xqEU](https://www.youtube.com/watch?v=8rBhQP1xqEU)
 
+-   **Alternative Script by StormFusions:**
+    -   [https://github.com/StormFusions/Draconic-ComputerCraft-Program](https://github.com/StormFusions/Draconic-ComputerCraft-Program)
+
 -   **Create: Additions - ComputerCraft API (For general peripheral reference):**
     -   [https://github.com/mrh0/createaddition/blob/main/COMPUTERCRAFT.md](https://github.com/mrh0/createaddition/blob/main/COMPUTERCRAFT.md)
