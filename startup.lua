@@ -183,6 +183,52 @@ function update()
     fieldPercent = math.ceil(ri.fieldStrength / ri.maxFieldStrength * 10000) * 0.01
     fuelPercent = 100 - math.ceil(ri.fuelConversion / ri.maxFuelConversion * 10000) * 0.01
 
+    -- Reactor control logic
+    if emergencyCharge then reactor.chargeReactor() end
+    if ri.status == "charging" then
+      inputfluxgate.setSignalLowFlow(900000)
+      emergencyCharge = false
+    end
+    if emergencyTemp and ri.status == "stopping" and ri.temperature < safeTemperature then
+      reactor.activateReactor()
+      emergencyTemp = false
+    end
+    if ri.status == "charged" and activateOnCharged == 1 then
+      reactor.activateReactor()
+    end
+    if ri.status == "online" then
+      -- Auto-mode for input gate (field strength)
+      local fluxval = ri.fieldDrainRate / (1 - (targetStrength / 100))
+      inputfluxgate.setSignalLowFlow(fluxval)
+
+      -- Auto-mode for output gate (energy saturation)
+      if satPercent > 80 then
+        fluxgate.setSignalLowFlow(ri.generationRate * 1.1) -- Increase output if saturation is high
+      elseif satPercent < 70 then
+        fluxgate.setSignalLowFlow(ri.generationRate * 0.9) -- Decrease output if saturation is low
+      else
+        fluxgate.setSignalLowFlow(ri.generationRate) -- Stabilize output
+      end
+    end
+    if fuelPercent and fuelPercent <= 10 then
+      reactor.stopReactor()
+      action = "Fuel low, refuel"
+      if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
+    end
+    if fieldPercent and fieldPercent <= lowestFieldPercent and ri.status == "online" then
+      action = "Field < " .. lowestFieldPercent .. "%"
+      reactor.stopReactor()
+      reactor.chargeReactor()
+      emergencyCharge = true
+      if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
+    end
+    if ri.temperature > maxTemperature then
+      reactor.stopReactor()
+      action = "Temp > " .. maxTemperature
+      emergencyTemp = true
+      if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
+    end
+
     -- Critical updates (every 0.1s)
     if currentTime - lastCriticalUpdate >= criticalUpdateInterval then
       local temperature = f.format_int(ri.temperature) .. "C"
@@ -255,52 +301,6 @@ function update()
       end
 
       lastUpdate = currentTime
-    end
-
-    -- Reactor control logic
-    if emergencyCharge then reactor.chargeReactor() end
-    if ri.status == "charging" then
-      inputfluxgate.setSignalLowFlow(900000)
-      emergencyCharge = false
-    end
-    if emergencyTemp and ri.status == "stopping" and ri.temperature < safeTemperature then
-      reactor.activateReactor()
-      emergencyTemp = false
-    end
-    if ri.status == "charged" and activateOnCharged == 1 then
-      reactor.activateReactor()
-    end
-    if ri.status == "online" then
-      -- Auto-mode for input gate (field strength)
-      local fluxval = ri.fieldDrainRate / (1 - (targetStrength / 100))
-      inputfluxgate.setSignalLowFlow(fluxval)
-
-      -- Auto-mode for output gate (energy saturation)
-      if satPercent > 80 then
-        fluxgate.setSignalLowFlow(ri.generationRate * 1.1) -- Increase output if saturation is high
-      elseif satPercent < 70 then
-        fluxgate.setSignalLowFlow(ri.generationRate * 0.9) -- Decrease output if saturation is low
-      else
-        fluxgate.setSignalLowFlow(ri.generationRate) -- Stabilize output
-      end
-    end
-    if fuelPercent and fuelPercent <= 10 then
-      reactor.stopReactor()
-      action = "Fuel low, refuel"
-      if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
-    end
-    if fieldPercent and fieldPercent <= lowestFieldPercent and ri.status == "online" then
-      action = "Field < " .. lowestFieldPercent .. "%"
-      reactor.stopReactor()
-      reactor.chargeReactor()
-      emergencyCharge = true
-      if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
-    end
-    if ri.temperature > maxTemperature then
-      reactor.stopReactor()
-      action = "Temp > " .. maxTemperature
-      emergencyTemp = true
-      if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
     end
 
     sleep(0.1)
