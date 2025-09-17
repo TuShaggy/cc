@@ -174,10 +174,11 @@ local g_inputFlux, g_outputFlux = 0, 0
 
 function drawScreen()
   -- Simplified debug screen
+  local oldTerm = term.current() -- Save the original terminal
   while true do
+    term.redirect(mon) -- Redirect to the monitor
     mon.clear()
     mon.setCursorPos(1, 1)
-    term.redirect(mon)
 
     print("--- DRMon Debug ---")
     if g_ri and g_ri.status then
@@ -194,7 +195,7 @@ function drawScreen()
       print("Waiting for reactor data...")
     end
 
-    term.restore()
+    term.redirect(oldTerm) -- Restore to the original terminal
     sleep(0.5) -- Update debug screen twice per second
   end
 end
@@ -229,6 +230,7 @@ function controlReactor()
       elseif g_fieldPercent <= lowestFieldPercent and g_ri.status == "online" then
         action = "EMERGENCY: Field Low"
         reactor.stopReactor()
+        reactor.chargeReactor() -- Immediately request charge after stopping
         emergencyCharge = true
         if speaker then speaker.playSound("minecraft:block.note_block.bass", 3, 1) end
       elseif g_ri.status == "online" then
