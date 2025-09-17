@@ -21,6 +21,9 @@ This script is based on and inspired by the following resources:
 -   **Original drmon Repository by acidjazz:**
     -   [https://github.com/acidjazz/drmon](https://github.com/acidjazz/drmon)
 
+-   **New Base Script by frostice482:**
+    -   [https://github.com/frostice482/drctrl](https://github.com/frostice482/drctrl)
+
 -   **YouTube Showcase/Tutorial:**
     -   [https://www.youtube.com/watch?v=8rBhQP1xqEU](https://www.youtube.com/watch?v=8rBhQP1xqEU)
 
